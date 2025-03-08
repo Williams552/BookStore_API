@@ -1,42 +1,39 @@
 ﻿using Library_API.Models;
 using Library_API.Repository;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
+// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Library_API.Controllers
 {
-
-
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthorController : ControllerBase
+    public class BookController : ControllerBase
     {
-        private readonly IRepository<Author> _authorRepository;
+        private readonly IRepository<Book> _bookRepository;
 
-        public AuthorController(IRepository<Author> authorRepository)
+        public BookController(IRepository<Book> bookRepository)
         {
-            _authorRepository = authorRepository;
+            _bookRepository = bookRepository;
         }
 
-        // GET: api/author
+        // GET: api/<BookController>
         [HttpGet]
-        public ActionResult<IEnumerable<Author>> GetAllAuthors()
+        public ActionResult<Book> GetAllBooks()
         {
-            var authors = _authorRepository.GetAll();
-            if (authors == null || !authors.Any())
+            var books = _bookRepository.GetAll();
+            if (books == null || !books.Any())
             {
-                return NotFound("No authors found.");
+                return NotFound("No books found.");
             }
-            return Ok(authors);
+            return Ok(books);
         }
 
-        // GET: api/author/{id}
+        // GET api/<BookController>/5
         [HttpGet("{id}")]
-        public ActionResult<Author> GetAuthorById(int id)
+        public ActionResult<Book> GetBookById(int id)
         {
-            var author = _authorRepository.GetById(id);
+            var author = _bookRepository.GetById(id);
             if (author == null)
             {
                 return NotFound($"Author with ID {id} not found.");
@@ -44,51 +41,29 @@ namespace Library_API.Controllers
             return Ok(author);
         }
 
-        // POST: api/author
+        // POST api/<BookController>
         [HttpPost]
-        public async Task<ActionResult<Author>> AddAuthor(Author author)
+        public async Task<ActionResult<Book>> AddBook(Book book)
         {
-            if (author == null)
+            if (book == null)
             {
                 return BadRequest("Author cannot be null.");
             }
 
-            _authorRepository.Add(author);
-            return CreatedAtAction(nameof(GetAuthorById), new { id = author.AuthorID }, author);
+            _bookRepository.Add(book);
+            return CreatedAtAction(nameof(GetBookById), new { id = book.BookID }, book);
         }
 
-        // PUT: api/author/{id}
+        // PUT api/<BookController>/5
         [HttpPut("{id}")]
-        public IActionResult UpdateAuthor(int id, Author author)
+        public void Put(int id, [FromBody] string value)
         {
-            if (id != author.AuthorID)
-            {
-                return BadRequest("Author ID mismatch.");
-            }
-
-            var existingAuthor = _authorRepository.GetById(id);
-            if (existingAuthor == null)
-            {
-                return NotFound($"Author with ID {id} not found.");
-            }
-
-            _authorRepository.Update(author);
-            return NoContent();
         }
 
-        // DELETE: api/author/{id}
+        // DELETE api/<BookController>/5
         [HttpDelete("{id}")]
-        public IActionResult DeleteAuthor(int id)
+        public void Delete(int id)
         {
-            var author = _authorRepository.GetById(id);
-            if (author == null)
-            {
-                return NotFound($"Author with ID {id} not found.");
-            }
-
-            _authorRepository.Delete(author);
-            return NoContent();
         }
     }
-
 }
