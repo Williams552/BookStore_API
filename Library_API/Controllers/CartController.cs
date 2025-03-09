@@ -21,9 +21,9 @@ namespace BookStore_API.Controllers
 
         // GET: api/cart
         [HttpGet]
-        public ActionResult<IEnumerable<Cart>> GetAllCarts()
+        public async Task<ActionResult<IEnumerable<Cart>>> GetAllCarts()
         {
-            var carts = _cartRepository.GetAll();
+            var carts = await Task.Run(() => _cartRepository.GetAll());
             if (carts == null || !carts.Any())
             {
                 return NotFound("No carts found.");
@@ -33,9 +33,9 @@ namespace BookStore_API.Controllers
 
         // GET: api/cart/{id}
         [HttpGet("{id}")]
-        public ActionResult<Cart> GetCartById(int id)
+        public async Task<ActionResult<Cart>> GetCartById(int id)
         {
-            var cart = _cartRepository.GetById(id);
+            var cart = await Task.Run(() => _cartRepository.GetById(id));
             if (cart == null)
             {
                 return NotFound($"Cart with ID {id} not found.");
@@ -53,20 +53,20 @@ namespace BookStore_API.Controllers
                 return BadRequest("Cart cannot be null.");
             }
 
-            await Task.Run(()=> _cartRepository.Add(cart));
+            await Task.Run(() => _cartRepository.Add(cart));
             return CreatedAtAction(nameof(GetCartById), new { id = cart.CartID }, cart);
         }
 
         // PUT: api/cart/{id}
         [HttpPut("{id}")]
-        public IActionResult UpdateCart(int id, CartDTO cartDTO)
+        public async Task<IActionResult> UpdateCart(int id, CartDTO cartDTO)
         {
             if (id != cartDTO.CartID)
             {
                 return BadRequest("Cart ID mismatch.");
             }
 
-            var existingCart = _cartRepository.GetById(id);
+            var existingCart = await Task.Run(() => _cartRepository.GetById(id));
             if (existingCart == null)
             {
                 return NotFound($"Cart with ID {id} not found.");
@@ -74,21 +74,21 @@ namespace BookStore_API.Controllers
 
             var cart = _mapperService.Map<CartDTO, Cart>(cartDTO);
 
-            _cartRepository.Update(cart);
+            await Task.Run(() => _cartRepository.Update(cart));
             return NoContent();
         }
 
         // DELETE: api/cart/{id}
         [HttpDelete("{id}")]
-        public IActionResult DeleteCart(int id)
+        public async Task<IActionResult> DeleteCart(int id)
         {
-            var cart = _cartRepository.GetById(id);
+            var cart = await Task.Run(() => _cartRepository.GetById(id));
             if (cart == null)
             {
                 return NotFound($"Cart with ID {id} not found.");
             }
 
-            _cartRepository.Delete(cart);
+            await Task.Run(() => _cartRepository.Delete(cart));
             return NoContent();
         }
     }

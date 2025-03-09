@@ -7,10 +7,10 @@ namespace BookStore_API.DataAccess.DAOs
 {
     public class Dao<T> : IDao<T> where T : class
     {
-        private readonly BookstoreContext _context;
+        private readonly BookStoreContext _context;
         private DbSet<T> _dbSet;
 
-        public Dao(BookstoreContext context)
+        public Dao(BookStoreContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();

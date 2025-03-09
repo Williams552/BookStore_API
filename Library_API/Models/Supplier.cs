@@ -1,26 +1,33 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
-namespace BookStore_API.Models
+namespace BookStore_API.Models;
+
+public partial class Supplier
 {
-    public class Supplier
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int SupplierID { get; set; }
-        public string SupplierName { get; set; }
-        public string ContactName { get; set; }
-        public string Phone { get; set; }
-        public string Email { get; set; }
-        public string Address { get; set; }
-        public DateTime CreateAt { get; set; }
-        public string? UpdateBy { get; set; }
-        public DateTime? UpdateAt { get; set; }
-        public string? DeleteBy { get; set; }
-        public DateTime? DeleteAt { get; set; }
+    public int SupplierID { get; set; }
 
-        public Boolean IsDeleted { get; set; }
+    public string SupplierName { get; set; } = null!;
 
-        public List<Book> Books { get; set; }
-    }
+    public string ContactName { get; set; } = null!;
+
+    public string Phone { get; set; } = null!;
+
+    public string Email { get; set; } = null!;
+
+    public string Address { get; set; } = null!;
+
+    public DateTime CreateAt { get; set; }
+
+    public string? UpdateBy { get; set; }
+
+    public DateTime? UpdateAt { get; set; }
+
+    public string? DeleteBy { get; set; }
+
+    public DateTime? DeleteAt { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public virtual ICollection<Book> Books { get; set; } = new List<Book>();
 }

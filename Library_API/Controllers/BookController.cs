@@ -1,6 +1,7 @@
 ﻿using BookStore_API.Domain.DTO;
 using BookStore_API.Models;
 using BookStore_API.Repository;
+using BookStore_API.Services;
 using BookStore_API.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,12 +13,15 @@ namespace BookStore_API.Controllers
     {
         private readonly IRepository<Book> _bookRepository;
         private readonly IMapperService _mapperService;
+        private readonly IBookService _bookService;
 
-        public BookController(IRepository<Book> bookRepository, IMapperService mapperService)
+        public BookController(IRepository<Book> bookRepository,IMapperService mapperService,IBookService bookService)
         {
             _bookRepository = bookRepository;
             _mapperService = mapperService;
+            _bookService = bookService;
         }
+
 
         // GET: api/book
         [HttpGet]
@@ -47,14 +51,23 @@ namespace BookStore_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Book>> AddBook(BookDTO bookDTO)
         {
-            var book = _mapperService.Map<BookDTO, Book>(bookDTO);
-            if (book == null)
+            if (bookDTO == null)
             {
                 return BadRequest("Book cannot be null.");
             }
 
-            await Task.Run(() => _bookRepository.Add(book));
-            return CreatedAtAction(nameof(GetBookById), new { id = book.BookID }, book);
+            try
+            {
+                // Call the service to create the book
+                var book = await _bookService.CreateBook(bookDTO);
+
+                // Return the created book with a status of 201 (Created)
+                return CreatedAtAction(nameof(GetBookById), new { id = book.BookID }, book);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // PUT: api/book/{id}

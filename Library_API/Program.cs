@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<BookstoreContext>(options =>
+builder.Services.AddDbContext<BookStoreContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Initialize Firebase Admin SDK không có firebase-key thì đừng có bật.
@@ -28,14 +28,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IDao<>), typeof(Dao<>));
 builder.Services.AddScoped<IMapperService, MapperService>();
-
-
+builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<BookstoreContext>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<BookStoreContext>();
 
     // Kiểm tra nếu cơ sở dữ liệu đã tồn tại và nếu có migration cần thiết thì cập nhật
     if (dbContext.Database.CanConnect())

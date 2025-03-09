@@ -1,29 +1,39 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
-namespace BookStore_API.Models
+namespace BookStore_API.Models;
+
+public partial class User
 {
-    public class User
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int UserID { get; set; }
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public string Fullname { get; set; }
-        public string Role { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Address { get; set; }
-		public DateTime CreateAt { get; set; }
-		public string? UpdateBy { get; set; }
-		public DateTime? UpdateAt { get; set; }
-		public string? DeleteBy { get; set; }
-		public DateTime? DeleteAt { get; set; }
+    public int UserID { get; set; }
 
-		public Boolean IsDeleted { get; set; }
+    public string Username { get; set; } = null!;
 
-		public List<Order> Orders { get; set; }
-        public List<Cart> Carts { get; set; }
-    }
+    public string Password { get; set; } = null!;
+
+    public string Fullname { get; set; } = null!;
+
+    public string Role { get; set; } = null!;
+
+    public string Email { get; set; } = null!;
+
+    public string Phone { get; set; } = null!;
+
+    public string Address { get; set; } = null!;
+
+    public DateTime CreateAt { get; set; }
+
+    public string? UpdateBy { get; set; }
+
+    public DateTime? UpdateAt { get; set; }
+
+    public string? DeleteBy { get; set; }
+
+    public DateTime? DeleteAt { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
+
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }

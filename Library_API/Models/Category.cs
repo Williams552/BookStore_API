@@ -1,23 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
-namespace BookStore_API.Models
+namespace BookStore_API.Models;
+
+public partial class Category
 {
-    public class Category
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int CategoryID { get; set; }
-        public string CategoryName { get; set; }
-        public string Description { get; set; }
-        public DateTime CreateAt { get; set; }
-        public string? UpdateBy { get; set; }
-        public DateTime? UpdateAt { get; set; }
-        public string? DeleteBy { get; set; }
-        public DateTime? DeleteAt { get; set; }
+    public int CategoryID { get; set; }
 
-        public Boolean IsDeleted { get; set; }
+    public string CategoryName { get; set; } = null!;
 
-        public List<Book> Books { get; set; }
-    }
+    public string Description { get; set; } = null!;
+
+    public DateTime CreateAt { get; set; }
+
+    public string? UpdateBy { get; set; }
+
+    public DateTime? UpdateAt { get; set; }
+
+    public string? DeleteBy { get; set; }
+
+    public DateTime? DeleteAt { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public virtual ICollection<Book> Books { get; set; } = new List<Book>();
 }
