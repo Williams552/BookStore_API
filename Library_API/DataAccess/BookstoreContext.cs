@@ -1,8 +1,8 @@
 ﻿
-using Library_API.Models;
+using BookStore_API.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Library_API.DataAccess
+namespace BookStore_API.DataAccess
 {
     public class BookstoreContext : DbContext
     {

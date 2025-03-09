@@ -1,8 +1,8 @@
 using System;
 
-namespace Library_API.Domain.DTO
+namespace BookStore_API.Domain.DTO
 {
-    public class OrderDetailReadDTO
+    public class OrderDetailDTO
     {
         public int OrderDetailID { get; set; }
         public int OrderID { get; set; }

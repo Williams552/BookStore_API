@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Library_API.Models
+namespace BookStore_API.Models
 {
     public class User
     {
@@ -15,11 +15,15 @@ namespace Library_API.Models
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Address { get; set; }
-        public DateTime CreateAt { get; set; }
-        public DateTime? UpdateAt { get; set; }
-        public DateTime? DeleteAt { get; set; }
+		public DateTime CreateAt { get; set; }
+		public string? UpdateBy { get; set; }
+		public DateTime? UpdateAt { get; set; }
+		public string? DeleteBy { get; set; }
+		public DateTime? DeleteAt { get; set; }
 
-        public List<Order> Orders { get; set; }
+		public Boolean IsDeleted { get; set; }
+
+		public List<Order> Orders { get; set; }
         public List<Cart> Carts { get; set; }
     }
 }

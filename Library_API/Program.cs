@@ -1,11 +1,11 @@
 ﻿using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using Library_API.DataAccess;
-using Library_API.DataAccess.DAOs;
-using Library_API.Models;
-using Library_API.Repository;
-using Library_API.Services.Interface;
-using Library_API.Services;
+using BookStore_API.DataAccess;
+using BookStore_API.DataAccess.DAOs;
+using BookStore_API.Models;
+using BookStore_API.Repository;
+using BookStore_API.Services.Interface;
+using BookStore_API.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +27,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IDao<>), typeof(Dao<>));
-builder.Services.AddScoped<IAuthorServices, AuthorServices>();
+builder.Services.AddScoped<IMapperService, MapperService>();
 
 
 

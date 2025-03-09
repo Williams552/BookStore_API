@@ -1,4 +1,4 @@
-namespace Library_API
+namespace BookStore_API
 {
     public class WeatherForecast
     {

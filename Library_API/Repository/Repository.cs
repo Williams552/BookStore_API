@@ -1,9 +1,10 @@
-﻿using Library_API.DataAccess.DAOs;
+﻿using BookStore_API.DataAccess.DAOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace Library_API.Repository
+namespace BookStore_API.Repository
 {
     public class Repository<T> : IRepository<T> where T : class
     {
@@ -14,30 +15,29 @@ namespace Library_API.Repository
             _dao = dao;
         }
 
-        public void Add(T entity)
+        public async Task Add(T entity)
         {
-            _dao.Add(entity);
+            await _dao.Add(entity);
         }
 
-        public void Update(T entity)
+        public async Task Update(T entity)
         {
-            _dao.Update(entity);
+            await _dao.Update(entity);
         }
 
-        public void Delete(T entity)
+        public async Task Delete(T entity)
         {
-            _dao.Delete(entity); 
+            await _dao.Delete(entity);
         }
 
-        public IEnumerable<T> GetAll()
+        public async Task<IEnumerable<T>> GetAll()
         {
-            return _dao.GetAll(); 
+            return await _dao.GetAll();
         }
 
-        public T GetById(object id)
+        public async Task<T> GetById(object id)
         {
-            return _dao.GetById(id);  
+            return await _dao.GetById(id);
         }
     }
-
 }

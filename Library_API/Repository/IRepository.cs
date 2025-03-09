@@ -1,12 +1,11 @@
-﻿namespace Library_API.Repository
+﻿namespace BookStore_API.Repository
 {
     public interface IRepository<T> where T : class
     {
-        void Add(T entity);
-        void Update(T entity);
-        void Delete(T entity);
-        IEnumerable<T> GetAll();
-        T GetById(object id);
+        Task Add(T entity);
+        Task Update(T entity);
+        Task Delete(T entity);
+        Task<IEnumerable<T>> GetAll();
+        Task<T> GetById(object id);
     }
-
 }

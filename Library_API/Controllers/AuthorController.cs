@@ -1,35 +1,29 @@
-﻿using Library_API.Domain.DTO;
-using Library_API.Models;
-using Library_API.Repository;
-using Library_API.Services;
-using Library_API.Services.Interface;
+﻿using BookStore_API.Domain.DTO;
+using BookStore_API.Models;
+using BookStore_API.Repository;
+using BookStore_API.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Library_API.Controllers
+namespace BookStore_API.Controllers
 {
-
-
     [Route("api/[controller]")]
     [ApiController]
     public class AuthorController : ControllerBase
     {
         private readonly IRepository<Author> _authorRepository;
-        private readonly IAuthorServices _authorServices;
+        private readonly IMapperService _mapperService;
 
-        public AuthorController(IRepository<Author> authorRepository, IAuthorServices authorServices)
+        public AuthorController(IRepository<Author> authorRepository, IMapperService mapperService)
         {
             _authorRepository = authorRepository;
-            _authorServices = authorServices;
+            _mapperService = mapperService;
         }
 
         // GET: api/author
         [HttpGet]
-        public ActionResult<IEnumerable<Author>> GetAllAuthors()
+        public async Task<ActionResult<IEnumerable<Author>>> GetAllAuthors()
         {
-            var authors = _authorRepository.GetAll();
+            var authors = await Task.Run(() => _authorRepository.GetAll());
             if (authors == null || !authors.Any())
             {
                 return NotFound("No authors found.");
@@ -39,9 +33,9 @@ namespace Library_API.Controllers
 
         // GET: api/author/{id}
         [HttpGet("{id}")]
-        public ActionResult<Author> GetAuthorById(int id)
+        public async Task<ActionResult<Author>> GetAuthorById(int id)
         {
-            var author = _authorRepository.GetById(id);
+            var author = await Task.Run(() => _authorRepository.GetById(id));
             if (author == null)
             {
                 return NotFound($"Author with ID {id} not found.");
@@ -51,50 +45,51 @@ namespace Library_API.Controllers
 
         // POST: api/author
         [HttpPost]
-        public async Task<ActionResult<Author>> AddAuthor(AuthorCreateDTO authorDTO)
+        public async Task<ActionResult<Author>> AddAuthor(AuthorDTO authorDTO)
         {
-            var author = _authorServices.AuthorDTOtoAuthor(authorDTO);
+            var author = _mapperService.Map<AuthorDTO, Author>(authorDTO);
             if (author == null)
             {
                 return BadRequest("Author cannot be null.");
             }
 
-            _authorRepository.Add(author);
+            await Task.Run(() => _authorRepository.Add(author));
             return CreatedAtAction(nameof(GetAuthorById), new { id = author.AuthorID }, author);
         }
 
         // PUT: api/author/{id}
         [HttpPut("{id}")]
-        public IActionResult UpdateAuthor(int id, Author author)
+        public async Task<IActionResult> UpdateAuthor(int id, AuthorDTO authorDTO)
         {
-            if (id != author.AuthorID)
+            if (id != authorDTO.AuthorID)
             {
                 return BadRequest("Author ID mismatch.");
             }
 
-            var existingAuthor = _authorRepository.GetById(id);
+            var existingAuthor = await Task.Run(() => _authorRepository.GetById(id));
             if (existingAuthor == null)
             {
                 return NotFound($"Author with ID {id} not found.");
             }
 
-            _authorRepository.Update(author);
+            var author = _mapperService.Map<AuthorDTO, Author>(authorDTO);
+
+            await Task.Run(() => _authorRepository.Update(author));
             return NoContent();
         }
 
         // DELETE: api/author/{id}
         [HttpDelete("{id}")]
-        public IActionResult DeleteAuthor(int id)
+        public async Task<IActionResult> DeleteAuthor(int id)
         {
-            var author = _authorRepository.GetById(id);
+            var author = await Task.Run(() => _authorRepository.GetById(id));
             if (author == null)
             {
                 return NotFound($"Author with ID {id} not found.");
             }
 
-            _authorRepository.Delete(author);
+            await Task.Run(() => _authorRepository.Delete(author));
             return NoContent();
         }
     }
-
 }

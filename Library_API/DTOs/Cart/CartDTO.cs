@@ -1,8 +1,8 @@
 using System;
 
-namespace Library_API.Domain.DTO
+namespace BookStore_API.Domain.DTO
 {
-    public class CartUpdateDTO
+    public class CartDTO
     {
         public int CartID { get; set; }
         public int UserID { get; set; }
