@@ -78,7 +78,7 @@ namespace BookStore_API.Controllers
                 return NotFound($"Order with ID {id} not found.");
             }
 
-            var order = _mapperService.Map<OrderDTO, Order>(orderDTO);
+            var order = _mapperService.MapToDto<OrderDTO, Order>(orderDTO);
 
             await Task.Run(() => _orderRepository.Update(order));
             return NoContent();

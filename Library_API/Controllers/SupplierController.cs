@@ -47,7 +47,7 @@ namespace BookStore_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Supplier>> AddSupplier(SupplierDTO supplierDTO)
         {
-            var supplier = _mapperService.Map<SupplierDTO, Supplier>(supplierDTO);
+            var supplier = _mapperService.MapToDto<SupplierDTO, Supplier>(supplierDTO);
             if (supplier == null)
             {
                 return BadRequest("Supplier cannot be null.");
@@ -72,7 +72,7 @@ namespace BookStore_API.Controllers
                 return NotFound($"Supplier with ID {id} not found.");
             }
 
-            var supplier = _mapperService.Map<SupplierDTO, Supplier>(supplierDTO);
+            var supplier = _mapperService.MapToDto<SupplierDTO, Supplier>(supplierDTO);
 
             await Task.Run(() => _supplierRepository.Update(supplier));
             return NoContent();

@@ -47,7 +47,7 @@ namespace BookStore_API.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> AddUser(UserDTO userDTO)
         {
-            var user = _mapperService.Map<UserDTO, User>(userDTO);
+            var user = _mapperService.MapToDto<UserDTO, User>(userDTO);
             if (user == null)
             {
                 return BadRequest("User cannot be null.");
@@ -72,7 +72,7 @@ namespace BookStore_API.Controllers
                 return NotFound($"User with ID {id} not found.");
             }
 
-            var user = _mapperService.Map<UserDTO, User>(userDTO);
+            var user = _mapperService.MapToDto<UserDTO, User>(userDTO);
 
             await Task.Run(() => _userRepository.Update(user));
             return NoContent();

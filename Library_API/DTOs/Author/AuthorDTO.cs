@@ -11,6 +11,8 @@ namespace BookStore_API.Domain.DTO
         [Required]
         public string Biography { get; set; } = string.Empty;
         public string? ImageURL { get; set; }
-        public System.DateTime CreateAt { get; set; }
+        public string? ByID { get; set; }
+
+        public DateTime? Time { get; set; }
     }
 }

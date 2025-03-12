@@ -47,7 +47,7 @@ namespace BookStore_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Category>> AddCategory(CategoryDTO categoryDTO)
         {
-            var category = _mapperService.Map<CategoryDTO, Category>(categoryDTO);
+            var category = _mapperService.MapToDto<CategoryDTO, Category>(categoryDTO);
             if (category == null)
             {
                 return BadRequest("Category cannot be null.");
@@ -72,7 +72,7 @@ namespace BookStore_API.Controllers
                 return NotFound($"Category with ID {id} not found.");
             }
 
-            var category = _mapperService.Map<CategoryDTO, Category>(categoryDTO);
+            var category = _mapperService.MapToDto<CategoryDTO, Category>(categoryDTO);
 
             await Task.Run(() => _categoryRepository.Update(category));
             return NoContent();

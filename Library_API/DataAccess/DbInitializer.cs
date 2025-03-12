@@ -6,106 +6,147 @@ namespace BookStore_API.DataAccess
     {
         public static void Initialize(BookStoreContext context)
         {
-            // Kiểm tra và thêm dữ liệu mẫu vào bảng Authors nếu trống
+            // Thêm Authors
             if (!context.Authors.Any())
             {
                 var authors = new Author[]
                 {
-                    new Author { Fullname = "John Doe", Biography = "Biography of John Doe", ImageURL = "https://example.com/image1.jpg", CreateBy = "admin", CreateAt = DateTime.Now },
-                    new Author { Fullname = "Jane Smith", Biography = "Biography of Jane Smith", ImageURL = "https://example.com/image2.jpg", CreateBy = "admin", CreateAt = DateTime.Now },
-                    new Author { Fullname = "Michael Johnson", Biography = "Biography of Michael Johnson", ImageURL = "https://example.com/image3.jpg", CreateBy = "admin", CreateAt = DateTime.Now }
+            new Author { Fullname = "John Doe", Biography = "Tác giả best-seller", ImageURL = "/images/authors/1.jpg", CreateBy = "system", CreateAt = DateTime.Now },
+            new Author { Fullname = "J.K. Rowling", Biography = "Tác giả Harry Potter", ImageURL = "/images/authors/2.jpg", CreateBy = "system", CreateAt = DateTime.Now },
+            new Author { Fullname = "Stephen King", Biography = "Chuyên gia truyện kinh dị", ImageURL = "/images/authors/3.jpg", CreateBy = "system", CreateAt = DateTime.Now }
                 };
-
                 context.Authors.AddRange(authors);
                 context.SaveChanges();
             }
 
-            // Kiểm tra và thêm dữ liệu mẫu vào bảng Categories nếu trống
+            // Thêm Categories
             if (!context.Categories.Any())
             {
                 var categories = new Category[]
                 {
-                    new Category { CategoryName = "Fiction", Description = "Books that tell fictional stories", CreateAt = DateTime.Now, IsDeleted = false },
-                    new Category { CategoryName = "Non-fiction", Description = "Books based on factual information", CreateAt = DateTime.Now, IsDeleted = false },
-                    new Category { CategoryName = "Science", Description = "Books related to scientific topics", CreateAt = DateTime.Now, IsDeleted = false }
+            new Category { CategoryName = "Tiểu thuyết", Description = "Tác phẩm hư cấu", CreateAt = DateTime.Now },
+            new Category { CategoryName = "Khoa học", Description = "Sách khoa học", CreateAt = DateTime.Now },
+            new Category { CategoryName = "Lập trình", Description = "Công nghệ thông tin", CreateAt = DateTime.Now }
                 };
-
                 context.Categories.AddRange(categories);
                 context.SaveChanges();
             }
 
-            // Kiểm tra và thêm dữ liệu mẫu vào bảng Suppliers nếu trống
+            // Thêm Suppliers
             if (!context.Suppliers.Any())
             {
                 var suppliers = new Supplier[]
                 {
-                    new Supplier { SupplierName = "Book Supplier A", ContactName = "John Supplier", Phone = "123456789", Email = "supplierA@example.com", Address = "123 Supplier St.", CreateAt = DateTime.Now, IsDeleted = false },
-                    new Supplier { SupplierName = "Book Supplier B", ContactName = "Jane Supplier", Phone = "987654321", Email = "supplierB@example.com", Address = "456 Supplier Ave.", CreateAt = DateTime.Now, IsDeleted = false }
+            new Supplier { SupplierName = "NXB Trẻ", ContactName = "Mr. A", Phone = "0901234567", Email = "nxbtre@example.com", Address = "TP.HCM" },
+            new Supplier { SupplierName = "NXB Kim Đồng", ContactName = "Ms. B", Phone = "0917654321", Email = "kimdong@example.com", Address = "Hà Nội" }
                 };
-
                 context.Suppliers.AddRange(suppliers);
                 context.SaveChanges();
             }
 
-            // Kiểm tra và thêm dữ liệu mẫu vào bảng Books nếu trống
+            // Thêm Books với quan hệ
             if (!context.Books.Any())
             {
                 var books = new Book[]
                 {
-                    new Book { Title = "Fictional Adventures", AuthorID = 1, CategoryID = 1, Price = 19.99m, Stock = 10, Description = "A thrilling fiction book.", ImageURL = "https://example.com/book1.jpg", SupplierID = 1, CreateAt = DateTime.Now, IsDeleted = false },
-                    new Book { Title = "Science Discoveries", AuthorID = 2, CategoryID = 3, Price = 29.99m, Stock = 5, Description = "Explore the latest in science.", ImageURL = "https://example.com/book2.jpg", SupplierID = 2, CreateAt = DateTime.Now, IsDeleted = false }
+            new Book {
+                Title = "Harry Potter",
+                AuthorID = 2,
+                CategoryID = 1,
+                SupplierID = 1,
+                Price = 150000,
+                Stock = 100,
+                Description = "Phiêu lưu phù thủy",
+                ImageURL = "/images/books/1.jpg"
+            },
+            new Book {
+                Title = "Clean Code",
+                AuthorID = 1,
+                CategoryID = 3,
+                SupplierID = 2,
+                Price = 200000,
+                Stock = 50,
+                Description = "Kỹ năng lập trình",
+                ImageURL = "/images/books/2.jpg"
+            }
                 };
-
                 context.Books.AddRange(books);
                 context.SaveChanges();
             }
 
-            // Kiểm tra và thêm dữ liệu mẫu vào bảng Users nếu trống
+            // Thêm Users
+            // Thêm Users với đầy đủ thông tin bắt buộc
             if (!context.Users.Any())
             {
                 var users = new User[]
                 {
-                    new User { Username = "user1", Password = "password1", Fullname = "Alice User", Role = "Customer", Email = "alice@example.com", Phone = "111222333", Address = "123 Main St.", CreateAt = DateTime.Now, IsDeleted = false },
-                    new User { Username = "admin", Password = "admin123", Fullname = "Admin User", Role = "Admin", Email = "admin@example.com", Phone = "444555666", Address = "456 Admin Ave.", CreateAt = DateTime.Now, IsDeleted = false }
+            new User {
+            Username = "admin",
+            Password = "admin123",
+            Fullname = "Quản trị hệ thống",
+            Role = "Admin",
+            Email = "admin@bookstore.com",
+            Phone = "0900000001", // Thêm số điện thoại
+            Address = "Trụ sở chính", // Thêm địa chỉ
+            CreateAt = DateTime.Now,
+            IsDeleted = false
+        },
+        new User {
+            Username = "user1",
+            Password = "user123",
+            Fullname = "Người dùng 1",
+            Role = "Customer",
+            Email = "user1@bookstore.com",
+            Phone = "0900000002", // Thêm số điện thoại
+            Address = "123 Đường ABC", // Thêm địa chỉ
+            CreateAt = DateTime.Now,
+            IsDeleted = false
+        }
                 };
-
                 context.Users.AddRange(users);
                 context.SaveChanges();
             }
 
-            // Kiểm tra và thêm dữ liệu mẫu vào bảng Orders nếu trống
+            // Thêm Orders và OrderDetails với quan hệ
             if (!context.Orders.Any())
             {
-                var orders = new Order[]
+                var order = new Order
                 {
-                    new Order { UserID = 1, RecipientName = "Alice User", TotalAmount = 49.98m, DeliveryOption = "Standard", DeliveryAddress = "123 Main St.", RecipientPhone = "111222333", PaymentMethod = "Credit Card", Status = "Pending", CreateAt = DateTime.Now, IsDeleted = false }
+                    UserID = 2,
+                    RecipientName = "Trần Thị B",
+                    TotalAmount = 500000,
+                    DeliveryOption = "Giao hàng nhanh",
+                    DeliveryAddress = "456 Đường XYZ, Quận 2",
+                    RecipientPhone = "0918123456",
+                    PaymentMethod = "Tiền mặt",
+                    Status = "Chờ xác nhận",
+                    CreateAt = DateTime.Now,
+                    OrderDetails = new List<OrderDetail>
+        {
+            new OrderDetail {
+                BookID = 1,
+                Quantity = 2,
+            },
+            new OrderDetail {
+                BookID = 2,
+                Quantity = 1,
+            }
+        }
                 };
 
-                context.Orders.AddRange(orders);
+                context.Orders.Add(order);
                 context.SaveChanges();
             }
 
-            // Kiểm tra và thêm dữ liệu mẫu vào bảng OrderDetails nếu trống
-            if (!context.OrderDetails.Any())
-            {
-                var orderDetails = new OrderDetail[]
-                {
-                    new OrderDetail { OrderID = 1, BookID = 1, Quantity = 2 }
-                };
-
-                context.OrderDetails.AddRange(orderDetails);
-                context.SaveChanges();
-            }
-
-            // Kiểm tra và thêm dữ liệu mẫu vào bảng Carts nếu trống
+            // Thêm dữ liệu giỏ hàng
             if (!context.Carts.Any())
             {
-                var carts = new Cart[]
+                var cartItems = new Cart[]
                 {
-                    new Cart { UserID = 1, BookID = 1, Quantity = 1, CreateAt = DateTime.Now, IsDeleted = false }
+            new Cart { UserID = 2, BookID = 1, Quantity = 1 },
+            new Cart { UserID = 2, BookID = 2, Quantity = 2 }
                 };
-
-                context.Carts.AddRange(carts);
+                context.Carts.AddRange(cartItems);
                 context.SaveChanges();
             }
         }

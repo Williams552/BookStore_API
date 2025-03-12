@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace BookStore_API.DataAccess.DAOs
@@ -9,11 +10,15 @@ namespace BookStore_API.DataAccess.DAOs
     {
         private readonly BookStoreContext _context;
         private DbSet<T> _dbSet;
-
+        private readonly string _primaryKeyName;
         public Dao(BookStoreContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();
+
+            var entityType = _context.Model.FindEntityType(typeof(T));
+            var primaryKey = entityType.FindPrimaryKey();
+            _primaryKeyName = primaryKey.Properties[0].Name;
         }
 
         public async Task Add(T entity)
@@ -34,14 +39,27 @@ namespace BookStore_API.DataAccess.DAOs
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<T>> GetAll()
+        public async Task<IEnumerable<T>> GetAll(params Expression<Func<T, object>>[] includes)
         {
-            return await _dbSet.ToListAsync();
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            return await query.ToListAsync();
         }
-
-        public async Task<T> GetById(object id)
+        public async Task<T> GetById(object id, params Expression<Func<T, object>>[] includes)
         {
-            return await _dbSet.FindAsync(id);
+            IQueryable<T> query = _dbSet;
+
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            // Sử dụng primary key đã lấy được
+            return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, _primaryKeyName) == (int)id
+            );
         }
     }
 }

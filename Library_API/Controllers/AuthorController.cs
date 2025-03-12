@@ -23,31 +23,37 @@ namespace BookStore_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Author>>> GetAllAuthors()
         {
-            var authors = await Task.Run(() => _authorRepository.GetAll());
-            if (authors == null || !authors.Any())
+            var authors = await _authorRepository.GetAll(a => a.Books);
+            if (!authors.Any())
             {
                 return NotFound("No authors found.");
             }
-            return Ok(authors);
+
+            var authorDTOs = authors.Select(author => _mapperService.MapToDto<Author, AuthorViewDTO>(author)).ToList();
+            return Ok(authorDTOs);
         }
 
         // GET: api/author/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Author>> GetAuthorById(int id)
         {
-            var author = await Task.Run(() => _authorRepository.GetById(id));
+            var author = await _authorRepository.GetById(id, a => a.Books);
+
             if (author == null)
             {
                 return NotFound($"Author with ID {id} not found.");
             }
-            return Ok(author);
+
+            var AuthorDTO = _mapperService.MapToDto<Author, AuthorViewDTO>(author);
+
+            return Ok(AuthorDTO);
         }
 
         // POST: api/author
         [HttpPost]
         public async Task<ActionResult<Author>> AddAuthor(AuthorDTO authorDTO)
         {
-            var author = _mapperService.Map<AuthorDTO, Author>(authorDTO);
+            var author = _mapperService.MapToEntity<AuthorDTO, Author>(authorDTO);
             if (author == null)
             {
                 return BadRequest("Author cannot be null.");
@@ -66,13 +72,13 @@ namespace BookStore_API.Controllers
                 return BadRequest("Author ID mismatch.");
             }
 
-            var existingAuthor = await Task.Run(() => _authorRepository.GetById(id));
+            var existingAuthor = await _authorRepository.GetById(id, a => a.Books);
             if (existingAuthor == null)
             {
                 return NotFound($"Author with ID {id} not found.");
             }
 
-            var author = _mapperService.Map<AuthorDTO, Author>(authorDTO);
+            var author = _mapperService.MapToEntity<AuthorDTO, Author>(authorDTO);
 
             await Task.Run(() => _authorRepository.Update(author));
             return NoContent();

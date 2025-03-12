@@ -7,12 +7,19 @@ using BookStore_API.Repository;
 using BookStore_API.Services.Interface;
 using BookStore_API.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<BookStoreContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddControllers().AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+});
 
 // Initialize Firebase Admin SDK không có firebase-key thì đừng có bật.
 //FirebaseApp.Create(new AppOptions()
@@ -37,6 +44,8 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<BookStoreContext>();
 
+    dbContext.Database.EnsureDeleted();
+
     // Kiểm tra nếu cơ sở dữ liệu đã tồn tại và nếu có migration cần thiết thì cập nhật
     if (dbContext.Database.CanConnect())
     {
@@ -52,7 +61,6 @@ using (var scope = app.Services.CreateScope())
     // Khởi tạo dữ liệu mẫu (nếu cần)
     DbInitializer.Initialize(dbContext);
 }
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

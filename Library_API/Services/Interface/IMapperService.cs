@@ -1,8 +1,13 @@
-﻿namespace BookStore_API.Services.Interface
+﻿using System;
+using System.Collections;
+
+namespace BookStore_API.Services.Interface
 {
     public interface IMapperService
     {
-        TDestination Map<TSource, TDestination>(TSource source)
-            where TDestination : new();
+        TDto MapToDto<TEntity, TDto>(TEntity entity)
+            where TDto : new();
+        TEntity MapToEntity<TDto, TEntity>(TDto dto)
+            where TEntity : new();
     }
 }

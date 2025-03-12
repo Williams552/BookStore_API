@@ -47,7 +47,7 @@ namespace BookStore_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Cart>> AddCart(CartDTO cartDTO)
         {
-            var cart = _mapperService.Map<CartDTO, Cart>(cartDTO);
+            var cart = _mapperService.MapToDto<CartDTO, Cart>(cartDTO);
             if (cart == null)
             {
                 return BadRequest("Cart cannot be null.");
@@ -72,7 +72,7 @@ namespace BookStore_API.Controllers
                 return NotFound($"Cart with ID {id} not found.");
             }
 
-            var cart = _mapperService.Map<CartDTO, Cart>(cartDTO);
+            var cart = _mapperService.MapToDto<CartDTO, Cart>(cartDTO);
 
             await Task.Run(() => _cartRepository.Update(cart));
             return NoContent();

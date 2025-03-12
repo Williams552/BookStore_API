@@ -85,7 +85,7 @@ namespace BookStore_API.Controllers
                 return NotFound($"Book with ID {id} not found.");
             }
 
-            var book = _mapperService.Map<BookDTO, Book>(bookDTO);
+            var book = _mapperService.MapToDto<BookDTO, Book>(bookDTO);
 
             await Task.Run(() => _bookRepository.Update(book));
             return NoContent();

@@ -27,7 +27,7 @@ namespace BookStore_API.Services
         }
         public async Task<Book> CreateBook(BookDTO bookDTO)
         {
-            var book = _mapperService.Map<BookDTO, Book>(bookDTO);
+            var book = _mapperService.MapToDto<BookDTO, Book>(bookDTO);
 
             if (book == null)
             {

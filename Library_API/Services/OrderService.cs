@@ -21,7 +21,7 @@ namespace BookStore_API.Services
         public async Task<Order> CreateOrder(OrderDTO orderDTO)
         {
             // Map OrderDTO to Order entity
-            var order = _mapperService.Map<OrderDTO, Order>(orderDTO);
+            var order = _mapperService.MapToDto<OrderDTO, Order>(orderDTO);
             if (order == null)
             {
                 throw new ArgumentException("Order cannot be null.");
