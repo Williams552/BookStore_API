@@ -23,7 +23,7 @@ namespace BookStore_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetAllCategories()
         {
-            var categories = await Task.Run(() => _categoryRepository.GetAll());
+            var categories = await _categoryRepository.GetAll(c => c.Books);
             if (categories == null || !categories.Any())
             {
                 return NotFound("No categories found.");
@@ -35,7 +35,7 @@ namespace BookStore_API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategoryById(int id)
         {
-            var category = await Task.Run(() => _categoryRepository.GetById(id));
+            var category = await Task.Run(() => _categoryRepository.GetById(id, c => c.Books));
             if (category == null)
             {
                 return NotFound($"Category with ID {id} not found.");

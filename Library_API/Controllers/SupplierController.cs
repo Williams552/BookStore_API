@@ -23,7 +23,7 @@ namespace BookStore_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Supplier>>> GetAllSuppliers()
         {
-            var suppliers = await Task.Run(() => _supplierRepository.GetAll());
+            var suppliers = await Task.Run(() => _supplierRepository.GetAll(s => s.Books));
             if (suppliers == null || !suppliers.Any())
             {
                 return NotFound("No suppliers found.");
@@ -35,7 +35,7 @@ namespace BookStore_API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Supplier>> GetSupplierById(int id)
         {
-            var supplier = await Task.Run(() => _supplierRepository.GetById(id));
+            var supplier = await Task.Run(() => _supplierRepository.GetById(id, s => s.Books));
             if (supplier == null)
             {
                 return NotFound($"Supplier with ID {id} not found.");

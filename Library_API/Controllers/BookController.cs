@@ -27,7 +27,7 @@ namespace BookStore_API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Book>>> GetAllBooks()
         {
-            var books = await Task.Run(() => _bookRepository.GetAll());
+            var books = await _bookRepository.GetAll();
             if (books == null || !books.Any())
             {
                 return NotFound("No books found.");
@@ -39,7 +39,7 @@ namespace BookStore_API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Book>> GetBookById(int id)
         {
-            var book = await Task.Run(() => _bookRepository.GetById(id));
+            var book = await  _bookRepository.GetById(id);
             if (book == null)
             {
                 return NotFound($"Book with ID {id} not found.");
@@ -79,7 +79,7 @@ namespace BookStore_API.Controllers
                 return BadRequest("Book ID mismatch.");
             }
 
-            var existingBook = await Task.Run(() => _bookRepository.GetById(id));
+            var existingBook = await  _bookRepository.GetById(id);
             if (existingBook == null)
             {
                 return NotFound($"Book with ID {id} not found.");
@@ -87,7 +87,7 @@ namespace BookStore_API.Controllers
 
             var book = _mapperService.MapToDto<BookDTO, Book>(bookDTO);
 
-            await Task.Run(() => _bookRepository.Update(book));
+            await  _bookRepository.Update(book);
             return NoContent();
         }
 
@@ -95,13 +95,13 @@ namespace BookStore_API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
-            var book = await Task.Run(() => _bookRepository.GetById(id));
+            var book = await  _bookRepository.GetById(id);
             if (book == null)
             {
                 return NotFound($"Book with ID {id} not found.");
             }
 
-            await Task.Run(() => _bookRepository.Delete(book));
+            await  _bookRepository.Delete(book);
             return NoContent();
         }
     }

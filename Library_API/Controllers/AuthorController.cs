@@ -1,8 +1,10 @@
-﻿using BookStore_API.Domain.DTO;
+﻿using BookStore_API.DataAccess;
+using BookStore_API.Domain.DTO;
 using BookStore_API.Models;
 using BookStore_API.Repository;
 using BookStore_API.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStore_API.Controllers
 {
@@ -12,11 +14,14 @@ namespace BookStore_API.Controllers
     {
         private readonly IRepository<Author> _authorRepository;
         private readonly IMapperService _mapperService;
+        private readonly BookStoreContext _context;
 
-        public AuthorController(IRepository<Author> authorRepository, IMapperService mapperService)
+
+        public AuthorController(IRepository<Author> authorRepository, IMapperService mapperService, BookStoreContext context)
         {
             _authorRepository = authorRepository;
             _mapperService = mapperService;
+            _context = context;
         }
 
         // GET: api/author
@@ -24,13 +29,12 @@ namespace BookStore_API.Controllers
         public async Task<ActionResult<IEnumerable<Author>>> GetAllAuthors()
         {
             var authors = await _authorRepository.GetAll(a => a.Books);
-            if (!authors.Any())
+
+            if (authors == null)
             {
                 return NotFound("No authors found.");
             }
-
-            var authorDTOs = authors.Select(author => _mapperService.MapToDto<Author, AuthorViewDTO>(author)).ToList();
-            return Ok(authorDTOs);
+            return Ok(authors);
         }
 
         // GET: api/author/{id}
