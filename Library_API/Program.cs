@@ -59,7 +59,6 @@ using (var scope = app.Services.CreateScope())
     }
 
     // Khởi tạo dữ liệu mẫu (nếu cần)
-    DbInitializer.Initialize(dbContext);
 }
 
 // Configure the HTTP request pipeline.

@@ -1,11 +1,14 @@
+using BookStore_API.Models;
 using System;
 
 namespace BookStore_API.Domain.DTO
 {
-    public class CategoryDTO
+    public class CategoryReadDTO
     {
         public int CategoryID { get; set; }
         public string? CategoryName { get; set; }
         public string? Description { get; set; }
+        public virtual ICollection<BookDTO> Books { get; set; } = new List<BookDTO>();
+
     }
 }

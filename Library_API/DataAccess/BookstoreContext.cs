@@ -32,95 +32,128 @@ public partial class BookStoreContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=TIENDAT;Initial Catalog=BookStore;Integrated Security=True;Encrypt=True;Trust Server Certificate=True");
+    public virtual DbSet<WishList> WishLists { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Author>(entity =>
         {
             entity.Property(e => e.AuthorID).HasColumnName("AuthorID");
+            entity.Property(e => e.Biography).HasColumnType("text");
             entity.Property(e => e.ImageURL).HasColumnName("ImageURL");
         });
 
         modelBuilder.Entity<Book>(entity =>
         {
-            entity.HasIndex(e => e.AuthorID, "IX_Books_AuthorID");
-
-            entity.HasIndex(e => e.CategoryID, "IX_Books_CategoryID");
-
-            entity.HasIndex(e => e.SupplierID, "IX_Books_SupplierID");
-
             entity.Property(e => e.BookID).HasColumnName("BookID");
             entity.Property(e => e.AuthorID).HasColumnName("AuthorID");
             entity.Property(e => e.CategoryID).HasColumnName("CategoryID");
+            entity.Property(e => e.Description).HasColumnType("text");
             entity.Property(e => e.ImageURL).HasColumnName("ImageURL");
-            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.IsDelete).HasColumnName("isDelete");
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.SupplierID).HasColumnName("SupplierID");
 
-            entity.HasOne(d => d.Author).WithMany(p => p.Books).HasForeignKey(d => d.AuthorID);
+            entity.HasOne(d => d.Author).WithMany(p => p.Books)
+                .HasForeignKey(d => d.AuthorID)
+                .HasConstraintName("FK_Books_Authors");
 
-            entity.HasOne(d => d.Category).WithMany(p => p.Books).HasForeignKey(d => d.CategoryID);
+            entity.HasOne(d => d.Category).WithMany(p => p.Books)
+                .HasForeignKey(d => d.CategoryID)
+                .HasConstraintName("FK_Books_Categories");
 
-            entity.HasOne(d => d.Supplier).WithMany(p => p.Books).HasForeignKey(d => d.SupplierID);
+            entity.HasOne(d => d.Supplier).WithMany(p => p.Books)
+                .HasForeignKey(d => d.SupplierID)
+                .HasConstraintName("FK_Books_Suppliers");
         });
 
         modelBuilder.Entity<Cart>(entity =>
         {
-            entity.HasIndex(e => e.BookID, "IX_Carts_BookID");
-
-            entity.HasIndex(e => e.UserID, "IX_Carts_UserID");
+            entity.ToTable("Cart");
 
             entity.Property(e => e.CartID).HasColumnName("CartID");
             entity.Property(e => e.BookID).HasColumnName("BookID");
+            entity.Property(e => e.TotalPrice).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.UserID).HasColumnName("UserID");
 
-            entity.HasOne(d => d.Book).WithMany(p => p.Carts).HasForeignKey(d => d.BookID);
+            entity.HasOne(d => d.Book).WithMany(p => p.Carts)
+                .HasForeignKey(d => d.BookID)
+                .HasConstraintName("FK_Cart_Books");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Carts).HasForeignKey(d => d.UserID);
+            entity.HasOne(d => d.User).WithMany(p => p.Carts)
+                .HasForeignKey(d => d.UserID)
+                .HasConstraintName("FK_Cart_User");
         });
 
         modelBuilder.Entity<Category>(entity =>
         {
             entity.Property(e => e.CategoryID).HasColumnName("CategoryID");
+            entity.Property(e => e.Description).HasColumnType("text");
         });
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasIndex(e => e.UserID, "IX_Orders_UserID");
-
             entity.Property(e => e.OrderID).HasColumnName("OrderID");
-            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.UserID).HasColumnName("UserID");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Orders).HasForeignKey(d => d.UserID);
+            entity.HasOne(d => d.User).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.UserID)
+                .HasConstraintName("FK_Orders_User");
         });
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            entity.HasIndex(e => e.BookID, "IX_OrderDetails_BookID");
-
-            entity.HasIndex(e => e.OrderID, "IX_OrderDetails_OrderID");
-
             entity.Property(e => e.OrderDetailID).HasColumnName("OrderDetailID");
             entity.Property(e => e.BookID).HasColumnName("BookID");
             entity.Property(e => e.OrderID).HasColumnName("OrderID");
-            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
 
-            entity.HasOne(d => d.Book).WithMany(p => p.OrderDetails).HasForeignKey(d => d.BookID);
+            entity.HasOne(d => d.Book).WithMany(p => p.OrderDetails)
+                .HasForeignKey(d => d.BookID)
+                .HasConstraintName("FK_OrderDetails_Books");
 
-            entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails).HasForeignKey(d => d.OrderID);
+            entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
+                .HasForeignKey(d => d.OrderID)
+                .HasConstraintName("FK_OrderDetails_Orders");
         });
 
         modelBuilder.Entity<Supplier>(entity =>
         {
             entity.Property(e => e.SupplierID).HasColumnName("SupplierID");
+            entity.Property(e => e.Address).HasMaxLength(255);
+            entity.Property(e => e.Email).HasMaxLength(255);
+            entity.Property(e => e.Phone).HasMaxLength(255);
+            entity.Property(e => e.SupplierName).HasMaxLength(255);
         });
 
         modelBuilder.Entity<User>(entity =>
         {
+            entity.ToTable("User");
+
             entity.Property(e => e.UserID).HasColumnName("UserID");
+            entity.Property(e => e.ImageUrl).HasColumnName("ImageURL");
+            entity.Property(e => e.IsDelete).HasColumnName("isDelete");
+            entity.Property(e => e.Phone).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<WishList>(entity =>
+        {
+            entity.HasKey(e => e.WishID);
+
+            entity.ToTable("WishList");
+
+            entity.Property(e => e.WishID).HasColumnName("WishID");
+            entity.Property(e => e.BookID).HasColumnName("BookID");
+            entity.Property(e => e.UserID).HasColumnName("UserID");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.WishLists)
+                .HasForeignKey(d => d.BookID)
+                .HasConstraintName("FK_WishList_Books");
+
+            entity.HasOne(d => d.User).WithMany(p => p.WishLists)
+                .HasForeignKey(d => d.UserID)
+                .HasConstraintName("FK_WishList_User");
         });
 
         OnModelCreatingPartial(modelBuilder);

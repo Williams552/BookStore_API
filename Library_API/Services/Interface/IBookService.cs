@@ -5,6 +5,6 @@ namespace BookStore_API.Services.Interface
 {
     public interface IBookService
     {
-        Task<Book> CreateBook(BookDTO bookDTO);
+        Task<BookDTO> CreateBook(BookDTO bookDTO);
     }
 }

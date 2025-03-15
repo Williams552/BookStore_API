@@ -7,41 +7,39 @@ public partial class Book
 {
     public int BookID { get; set; }
 
-    public string Title { get; set; } = null!;
+    public int? AuthorID { get; set; }
 
-    public int AuthorID { get; set; }
+    public int? CategoryID { get; set; }
 
-    public int CategoryID { get; set; }
+    public int? SupplierID { get; set; }
 
-    public decimal Price { get; set; }
+    public string? Title { get; set; }
 
-    public int Stock { get; set; }
+    public decimal? Price { get; set; }
 
-    public string Description { get; set; } = null!;
+    public int? Stock { get; set; }
 
-    public string ImageURL { get; set; } = null!;
+    public string? Description { get; set; }
 
-    public int SupplierID { get; set; }
+    public DateOnly? PublicDate { get; set; }
 
-    public DateTime CreateAt { get; set; }
+    public string? ImageURL { get; set; }
 
-    public string? UpdateBy { get; set; }
+    public int? UpdateBy { get; set; }
 
-    public DateTime? UpdateAt { get; set; }
+    public DateOnly? UpdateAt { get; set; }
 
-    public string? DeleteBy { get; set; }
+    public bool? IsDelete { get; set; }
 
-    public DateTime? DeleteAt { get; set; }
-
-    public bool IsDeleted { get; set; }
-
-    public virtual Author Author { get; set; } = null!;
+    public virtual Author? Author { get; set; }
 
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 
-    public virtual Category Category { get; set; } = null!;
+    public virtual Category? Category { get; set; }
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
-    public virtual Supplier Supplier { get; set; } = null!;
+    public virtual Supplier? Supplier { get; set; }
+
+    public virtual ICollection<WishList> WishLists { get; set; } = new List<WishList>();
 }

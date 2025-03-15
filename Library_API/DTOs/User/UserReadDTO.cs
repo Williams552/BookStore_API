@@ -2,7 +2,7 @@ using System;
 
 namespace BookStore_API.Domain.DTO
 {
-    public class UserDTO
+    public class UserReadDTO
     {
         public int UserID { get; set; }
         public string? Username { get; set; }

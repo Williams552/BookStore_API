@@ -1,41 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace BookStore_API.Models;
 
 public partial class Order
 {
     public int OrderID { get; set; }
 
-    public int UserID { get; set; }
+    public int? UserID { get; set; }
 
-    public string RecipientName { get; set; } = null!;
+    public DateOnly? OrderDate { get; set; }
 
-    public decimal TotalAmount { get; set; }
+    public decimal? TotalAmount { get; set; }
 
-    public string DeliveryOption { get; set; } = null!;
+    public int? PaymentMethod { get; set; }
 
-    public string DeliveryAddress { get; set; } = null!;
-
-    public string RecipientPhone { get; set; } = null!;
-
-    public string PaymentMethod { get; set; } = null!;
-
-    public string Status { get; set; } = null!;
-
-    public DateTime CreateAt { get; set; }
-
-    public string? UpdateBy { get; set; }
-
-    public DateTime? UpdateAt { get; set; }
-
-    public string? DeleteBy { get; set; }
-
-    public DateTime? DeleteAt { get; set; }
-
-    public bool IsDeleted { get; set; }
+    public string? Status { get; set; }
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
-    public virtual User User { get; set; } = null!;
+    public virtual User? User { get; set; }
 }

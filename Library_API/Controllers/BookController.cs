@@ -11,11 +11,11 @@ namespace BookStore_API.Controllers
     [ApiController]
     public class BookController : ControllerBase
     {
-        private readonly IRepository<Book> _bookRepository;
+        private readonly IRepository<BookDTO> _bookRepository;
         private readonly IMapperService _mapperService;
         private readonly IBookService _bookService;
 
-        public BookController(IRepository<Book> bookRepository,IMapperService mapperService,IBookService bookService)
+        public BookController(IRepository<BookDTO> bookRepository,IMapperService mapperService,IBookService bookService)
         {
             _bookRepository = bookRepository;
             _mapperService = mapperService;
@@ -25,7 +25,7 @@ namespace BookStore_API.Controllers
 
         // GET: api/book
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Book>>> GetAllBooks()
+        public async Task<ActionResult<IEnumerable<BookDTO>>> GetAllBooks()
         {
             var books = await _bookRepository.GetAll();
             if (books == null || !books.Any())
@@ -37,7 +37,7 @@ namespace BookStore_API.Controllers
 
         // GET: api/book/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Book>> GetBookById(int id)
+        public async Task<ActionResult<BookDTO>> GetBookById(int id)
         {
             var book = await  _bookRepository.GetById(id);
             if (book == null)
@@ -49,7 +49,7 @@ namespace BookStore_API.Controllers
 
         // POST: api/book
         [HttpPost]
-        public async Task<ActionResult<Book>> AddBook(BookDTO bookDTO)
+        public async Task<ActionResult<BookDTO>> AddBook(BookDTO bookDTO)
         {
             if (bookDTO == null)
             {
@@ -85,7 +85,7 @@ namespace BookStore_API.Controllers
                 return NotFound($"Book with ID {id} not found.");
             }
 
-            var book = _mapperService.MapToDto<BookDTO, Book>(bookDTO);
+            var book = _mapperService.MapToDto<BookDTO, BookDTO>(bookDTO);
 
             await  _bookRepository.Update(book);
             return NoContent();
