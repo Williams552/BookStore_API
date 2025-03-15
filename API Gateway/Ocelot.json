@@ -1,0 +1,41 @@
+﻿{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/users/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user-service",
+          "Port": 80
+        } // Tên service trong Docker
+      ],
+      "UpstreamPathTemplate": "/api/users/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/books/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "book-service",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/books/{everything}"
+    },
+    {
+      "DownstreamPathTemplate": "/api/orders/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "order-service",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/orders/{everything}"
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://api-gateway:80" // URL của API Gateway trong Docker
+  }
+}
