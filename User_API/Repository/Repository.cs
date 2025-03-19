@@ -1,4 +1,4 @@
-﻿using BookStore_API.DataAccess.DAOs;
+﻿using Users_API.DataAccess.DAOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,6 +40,16 @@ namespace Users_API.Repository
         {
             // Chuyển đổi id thành kiểu đúng và truyền vào phương thức GetById của dao
             return await _dao.GetById(id, includes);
+        }
+
+        public async Task<IEnumerable<T>> GetByCondition(Expression<Func<T, bool>> expression, params Expression<Func<T, object>>[] includes)
+        {
+            return await _dao.GetByCondition(expression, includes);
+        }
+
+        public async Task<T> GetFirstByCondition(Expression<Func<T, bool>> expression, params Expression<Func<T, object>>[] includes)
+        {
+            return (await _dao.GetByCondition(expression, includes)).FirstOrDefault();
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿
+using Users_API.Domain.DTO;
+
 namespace Users_API.Models;
 
 public partial class Cart
@@ -13,7 +15,7 @@ public partial class Cart
 
     public decimal? TotalPrice { get; set; }
 
-    public virtual Book? Book { get; set; }
+    public virtual BookDTO? Book { get; set; }
 
     public virtual User? User { get; set; }
 }

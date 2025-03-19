@@ -4,9 +4,9 @@ using Users_API.Models;
 using Users_API.Repository;
 using Users_API.Services.Interface;
 
-namespace UserService.Controllers
+namespace Users_API.Controllers
 {
-    [Route("api/users")]
+    [Route("api/UserService/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -52,8 +52,8 @@ namespace UserService.Controllers
             var existingUser = await _userRepository.GetById(id);
             if (existingUser == null) return NotFound();
 
-            var updatedUser = _mapperService.MapToEntity<UserDTO,User>(userDTO);
-            await _userRepository.Update(updatedUser);
+            var user = _mapperService.MapToEntity<UserDTO, User>(userDTO);
+            await _userRepository.Update(user);
             return NoContent();
         }
 

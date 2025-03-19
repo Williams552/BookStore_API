@@ -1,7 +1,7 @@
 ﻿{
   "Routes": [
     {
-      "DownstreamPathTemplate": "/api/users/{everything}",
+      "DownstreamPathTemplate": "/api/UserService/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -9,11 +9,11 @@
           "Port": 80
         } // Tên service trong Docker
       ],
-      "UpstreamPathTemplate": "/api/users/{everything}",
+      "UpstreamPathTemplate": "/api/UserService/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
-      "DownstreamPathTemplate": "/api/books/{everything}",
+      "DownstreamPathTemplate": "/api/BookService/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -21,10 +21,10 @@
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/api/books/{everything}"
+      "UpstreamPathTemplate": "/api/BookService/{everything}"
     },
     {
-      "DownstreamPathTemplate": "/api/orders/{everything}",
+      "DownstreamPathTemplate": "/api/OrderService/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -32,7 +32,7 @@
           "Port": 80
         }
       ],
-      "UpstreamPathTemplate": "/api/orders/{everything}"
+      "UpstreamPathTemplate": "/api/OrderService/{everything}"
     }
   ],
   "GlobalConfiguration": {
