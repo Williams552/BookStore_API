@@ -8,12 +8,12 @@ namespace BookStore_API.Services
 {
     public class BookService : IBookService
     {
-        private readonly IRepository<BookDTO> _bookRepository;
+        private readonly IRepository<Book> _bookRepository;
         private readonly IMapperService _mapperService;
         private readonly IRepository<Author> _authorRepository;
         private readonly IRepository<Supplier> _supplierRepository;
         private readonly IRepository<Category> _categoryRepository;
-        public BookService(IRepository<BookDTO> bookRepository,
+        public BookService(IRepository<Book> bookRepository,
             IMapperService mapperService,
             IRepository<Author> authorRepository,
             IRepository<Supplier> supplierRepository,
