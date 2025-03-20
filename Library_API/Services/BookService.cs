@@ -25,9 +25,9 @@ namespace BookStore_API.Services
             _supplierRepository = supplierRepository;
             _categoryRepository = categoryRepository;
         }
-        public async Task<BookDTO> CreateBook(BookDTO bookDTO)
+        public async Task<Book> CreateBook(BookDTO bookDTO)
         {
-            var book = _mapperService.MapToDto<BookDTO, BookDTO>(bookDTO);
+            var book = _mapperService.MapToEntity<BookDTO, Book>(bookDTO);
 
             if (book == null)
             {
@@ -58,7 +58,9 @@ namespace BookStore_API.Services
             book.Author = author;
             book.Supplier = supplier;
             book.Category = category;
-            await Task.Run(() => _bookRepository.Add(book));
+
+            await _bookRepository.Add(book);
+
             return book;
         }
     }
