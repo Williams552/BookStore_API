@@ -27,6 +27,8 @@ public partial class User
     public bool? IsDelete { get; set; }
 
     public int? Role { get; set; }
+    public int? OTP { get; set; }
+    public DateTime? TimeOtp { get; set; }
 
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 
