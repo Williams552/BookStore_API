@@ -8,10 +8,10 @@ namespace Orders_API.DataAccess.DAOs
 {
     public class Dao<T> : IDao<T> where T : class
     {
-        private readonly BookDbContext _context;
+        private readonly OrderDbContext _context;
         private DbSet<T> _dbSet;
         private readonly string _primaryKeyName;
-        public Dao(BookDbContext context)
+        public Dao(OrderDbContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();

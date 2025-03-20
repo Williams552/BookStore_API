@@ -4,6 +4,7 @@ using Orders_API.Repository;
 using Orders_API.Services.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
 
 namespace Orders_API.Services
 {
@@ -11,11 +12,17 @@ namespace Orders_API.Services
     {
         private readonly IRepository<Order> _orderRepository;
         private readonly IMapperService _mapperService;
+        private readonly HttpClient _httpClientUserAPI;
+        private readonly HttpClient _httpClientBookAPI;
 
-        public OrderService(IRepository<Order> orderRepository, IMapperService mapperService)
+        public OrderService(IRepository<Order> orderRepository, IMapperService mapperService, IHttpClientFactory httpClient)
         {
             _orderRepository = orderRepository;
             _mapperService = mapperService;
+            _httpClientBookAPI = httpClient.CreateClient();
+            _httpClientBookAPI.BaseAddress = new Uri("https://localhost:7131/api/BookService/Book/");
+            _httpClientUserAPI = httpClient.CreateClient();
+            _httpClientUserAPI.BaseAddress = new Uri("https://localhost:7135/api/UserService/User/");
         }
 
         public async Task<Order> CreateOrder(OrderDTO orderDTO)

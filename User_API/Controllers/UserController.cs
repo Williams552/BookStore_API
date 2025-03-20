@@ -19,7 +19,7 @@ namespace Users_API.Controllers
             _mapperService = mapperService;
         }
 
-        // GET: api/users
+        // GET: api/UserService/users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
@@ -36,7 +36,7 @@ namespace Users_API.Controllers
             return Ok(user);
         }
 
-        // POST: api/users
+        // POST: api/UserService/users
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser([FromBody] UserDTO userDTO)
         {
@@ -45,7 +45,7 @@ namespace Users_API.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = user.UserID }, user);
         }
 
-        // PUT: api/users/{id}
+        // PUT: api/UserService/users/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDTO userDTO)
         {
@@ -57,7 +57,7 @@ namespace Users_API.Controllers
             return NoContent();
         }
 
-        // DELETE: api/users/{id}
+        // DELETE: api/UserService/users/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
