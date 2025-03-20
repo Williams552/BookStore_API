@@ -24,11 +24,5 @@ namespace BookStore_API.Domain.DTO
         public DateOnly? PublicDate { get; set; }
 
         public string? ImageURL { get; set; }
-
-        public virtual Author? Author { get; set; }
-
-        public virtual Category? Category { get; set; }
-
-        public virtual Supplier? Supplier { get; set; }
     }
 }

@@ -24,9 +24,6 @@ public partial class User
 
     public DateOnly? UpdateAt { get; set; }
 
-    public int? OTP { get; set; }
-    public DateTime? TimeOtp { get; set; }
-
     public bool? IsDelete { get; set; }
 
     public int? Role { get; set; }

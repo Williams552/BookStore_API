@@ -8,12 +8,12 @@ namespace BookStore_API.Services
 {
     public class BookService : IBookService
     {
-        private readonly IRepository<BookDTO> _bookRepository;
+        private readonly IRepository<Book> _bookRepository;
         private readonly IMapperService _mapperService;
         private readonly IRepository<Author> _authorRepository;
         private readonly IRepository<Supplier> _supplierRepository;
         private readonly IRepository<Category> _categoryRepository;
-        public BookService(IRepository<BookDTO> bookRepository,
+        public BookService(IRepository<Book> bookRepository,
             IMapperService mapperService,
             IRepository<Author> authorRepository,
             IRepository<Supplier> supplierRepository,
@@ -25,9 +25,9 @@ namespace BookStore_API.Services
             _supplierRepository = supplierRepository;
             _categoryRepository = categoryRepository;
         }
-        public async Task<BookDTO> CreateBook(BookDTO bookDTO)
+        public async Task<Book> CreateBook(BookDTO bookDTO)
         {
-            var book = _mapperService.MapToDto<BookDTO, BookDTO>(bookDTO);
+            var book = _mapperService.MapToEntity<BookDTO, Book>(bookDTO);
 
             if (book == null)
             {
@@ -58,7 +58,9 @@ namespace BookStore_API.Services
             book.Author = author;
             book.Supplier = supplier;
             book.Category = category;
-            await Task.Run(() => _bookRepository.Add(book));
+
+            await _bookRepository.Add(book);
+
             return book;
         }
     }

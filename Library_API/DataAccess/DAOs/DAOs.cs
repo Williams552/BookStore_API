@@ -29,7 +29,20 @@ namespace BookStore_API.DataAccess.DAOs
 
         public async Task Update(T entity)
         {
-            _dbSet.Update(entity);
+            // Lấy giá trị primary key của entity
+            var keyValue = _context.Entry(entity).Property(_primaryKeyName).CurrentValue;
+
+            // Tìm entity hiện tại trong database hoặc context
+            var existingEntity = await _dbSet.FindAsync(keyValue);
+
+            if (existingEntity == null)
+            {
+                throw new InvalidOperationException("Entity not found.");
+            }
+
+            // Copy giá trị từ entity mới sang entity hiện tại
+            _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+
             await _context.SaveChangesAsync();
         }
 
