@@ -40,26 +40,26 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<BookStoreContext>();
+//using (var scope = app.Services.CreateScope())
+//{
+//    var dbContext = scope.ServiceProvider.GetRequiredService<BookStoreContext>();
 
-    dbContext.Database.EnsureDeleted();
+//    dbContext.Database.EnsureDeleted();
 
-    // Kiểm tra nếu cơ sở dữ liệu đã tồn tại và nếu có migration cần thiết thì cập nhật
-    if (dbContext.Database.CanConnect())
-    {
-        // Nếu cơ sở dữ liệu tồn tại, kiểm tra xem có migration cần phải thực hiện không
-        dbContext.Database.Migrate();
-    }
-    else
-    {
-        // Nếu cơ sở dữ liệu chưa tồn tại, tạo mới cơ sở dữ liệu
-        dbContext.Database.EnsureCreated();
-    }
+//    // Kiểm tra nếu cơ sở dữ liệu đã tồn tại và nếu có migration cần thiết thì cập nhật
+//    if (dbContext.Database.CanConnect())
+//    {
+//        // Nếu cơ sở dữ liệu tồn tại, kiểm tra xem có migration cần phải thực hiện không
+//        dbContext.Database.Migrate();
+//    }
+//    else
+//    {
+//        // Nếu cơ sở dữ liệu chưa tồn tại, tạo mới cơ sở dữ liệu
+//        dbContext.Database.EnsureCreated();
+//    }
 
-    // Khởi tạo dữ liệu mẫu (nếu cần)
-}
+//    // Khởi tạo dữ liệu mẫu (nếu cần)
+//}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
