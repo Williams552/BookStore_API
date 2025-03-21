@@ -1,0 +1,49 @@
+﻿@model List<BookStore_Client.Models.Book>
+
+@{
+    ViewData["Title"] = "Book List";
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+}
+
+<h2>Book List</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Book</a>
+</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Price</th>
+            <th>Description</th>
+            <th>Stock</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var book in Model)
+            {
+                <tr>
+                    <td>@book.Title</td>
+                    <td>@book.Price?.ToString("C")</td>
+                    <td>@book.Description</td>
+                    <td>@book.Stock</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@book.BookID" class="btn btn-info">View</a>
+                        <a asp-action="Edit" asp-route-id="@book.BookID" class="btn btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@book.BookID" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center">No books found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
