@@ -1,4 +1,7 @@
-﻿namespace BookStore_Client.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace BookStore_Client.Models;
 
 public partial class User
 {
@@ -35,4 +38,26 @@ public partial class User
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     public virtual ICollection<WishList> WishLists { get; set; } = new List<WishList>();
+}
+public class password
+{
+    [StringLength(50, ErrorMessage = "Username cannot be longer than 50 characters.")]
+    public string? Username { get; set; }
+    public string Email { get; set; }
+
+    [MinLength(5, ErrorMessage = "Password must be at least 5 characters long.")]
+    [Required(ErrorMessage = "Password is required.")]
+    public string? PasswordHash { get; set; }
+    [StringLength(50, ErrorMessage = "Username cannot be longer than 50 characters.")]
+
+    [NotMapped]
+    [Required(ErrorMessage = "New Password is required.")]
+    [MinLength(5, ErrorMessage = "New Password must be at least 5 characters long.")]
+    public string? NewPassword { get; set; }
+
+
+    [NotMapped]
+    [Compare("NewPassword", ErrorMessage = "The password and confirmation password do not match.")]
+    [Required(ErrorMessage = "Confirm Password is required.")]
+    public string? ConfirmPassword { get; set; }
 }

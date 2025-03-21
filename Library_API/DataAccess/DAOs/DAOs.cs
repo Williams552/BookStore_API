@@ -73,6 +73,20 @@ namespace BookStore_API.DataAccess.DAOs
             // Sử dụng primary key đã lấy được
             return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, _primaryKeyName) == (int)id
             );
+
+
+        }
+
+        public async Task<T> GetProfileByEmail(string email, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return await query.FirstOrDefaultAsync(e => EF.Property<string>(e, "Email") == email);
         }
     }
 }

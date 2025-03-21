@@ -115,5 +115,16 @@ namespace BookStore_API.Controllers
             await Task.Run(() => _userRepository.Delete(user));
             return NoContent();
         }
+
+        [HttpGet("by-email/{email}")]
+        public async Task<ActionResult<User>> GetUserByEmail(string email)
+        {
+            var user = await _userRepository.GetProfileByEmail(email);
+            if (user == null)
+            {
+                return NotFound($"User with email {email} not found.");
+            }
+            return Ok(user);
+        }
     }
 }
