@@ -107,6 +107,7 @@ builder.Services.AddScoped(typeof(IDao<>), typeof(Dao<>));
 builder.Services.AddScoped<IMapperService, MapperService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
