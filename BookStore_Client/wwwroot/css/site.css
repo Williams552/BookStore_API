@@ -57,3 +57,12 @@ body {
     border-radius: 50%; /* Làm cho avatar hình tròn */
     margin-top: 6px;
 }
+
+/* CSS mới cho search box */
+.search-box {
+    position: relative;
+}
+
+    .search-box input:focus + .search-icon {
+        display: none;
+    }

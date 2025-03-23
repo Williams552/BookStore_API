@@ -25,7 +25,12 @@ namespace BookStore_API.Controllers
 
         // GET: api/book
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Book>>> GetAllBooks(int? authorId)
+        public async Task<ActionResult<IEnumerable<Book>>> GetAllBooks(
+            string? search,
+            int? categoryId,
+            int? authorId,
+            int page = 1,
+            int pageSize = 9)
         {
             var books = await _bookRepository.GetAll(b => b.Author, b => b.Category, b => b.Supplier);
             if (books == null || !books.Any())
@@ -33,10 +38,34 @@ namespace BookStore_API.Controllers
                 return NotFound("No books found.");
             }
 
+            // Lọc theo từ khóa tìm kiếm (Title)
+            if (!string.IsNullOrEmpty(search))
+            {
+                books = books.Where(b => b.Title != null && b.Title.ToLower().Contains(search.ToLower())).ToList();
+            }
+
+            // Lọc theo Category
+            if (categoryId.HasValue)
+            {
+                books = books.Where(b => b.CategoryID == categoryId.Value).ToList();
+            }
+
+            // Lọc theo Author
             if (authorId.HasValue)
             {
                 books = books.Where(b => b.AuthorID == authorId.Value).ToList();
             }
+
+            // Phân trang
+            var totalBooks = books.Count();
+            var totalPages = (int)Math.Ceiling(totalBooks / (double)pageSize);
+            books = books.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            // Thêm thông tin phân trang vào header
+            Response.Headers.Add("X-Total-Count", totalBooks.ToString());
+            Response.Headers.Add("X-Total-Pages", totalPages.ToString());
+            Response.Headers.Add("X-Current-Page", page.ToString());
+            Response.Headers.Add("X-Page-Size", pageSize.ToString());
 
             return Ok(books);
         }

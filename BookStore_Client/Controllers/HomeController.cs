@@ -17,34 +17,79 @@ namespace BookStore_Client.Controllers
             _httpClient.BaseAddress = new Uri("http://localhost:5242/");
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search, int? categoryId, int? authorId, int page = 1, int pageSize = 9)
         {
             try
             {
-                var booksResponse = await _httpClient.GetAsync("api/book");
+                // Tạo query string cho API
+                var query = new List<string>();
+                if (!string.IsNullOrEmpty(search))
+                {
+                    query.Add($"search={Uri.EscapeDataString(search)}");
+                }
+                if (categoryId.HasValue)
+                {
+                    query.Add($"categoryId={categoryId.Value}");
+                }
+                if (authorId.HasValue)
+                {
+                    query.Add($"authorId={authorId.Value}");
+                }
+                query.Add($"page={page}");
+                query.Add($"pageSize={pageSize}");
+
+                var queryString = string.Join("&", query);
+                var booksUrl = string.IsNullOrEmpty(queryString) ? "api/book" : $"api/book?{queryString}";
+
+                // Gọi API để lấy danh sách sách
+                var booksResponse = await _httpClient.GetAsync(booksUrl);
                 if (!booksResponse.IsSuccessStatusCode)
                 {
                     _logger.LogError("Không thể lấy danh sách sách từ API.");
-                    return View(new HomeViewModel { Books = new List<Book>(), Categories = new List<Category>() });
+                    return View(new HomeViewModel { Books = new List<Book>(), Categories = new List<Category>(), Authors = new List<Author>() });
                 }
 
                 var booksContent = await booksResponse.Content.ReadAsStringAsync();
                 var books = JsonSerializer.Deserialize<List<Book>>(booksContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
+                // Lấy thông tin phân trang từ header
+                var totalBooks = int.Parse(booksResponse.Headers.GetValues("X-Total-Count").FirstOrDefault() ?? "0");
+                var totalPages = int.Parse(booksResponse.Headers.GetValues("X-Total-Pages").FirstOrDefault() ?? "1");
+
+                // Gọi API để lấy danh sách danh mục
                 var categoriesResponse = await _httpClient.GetAsync("api/category");
                 if (!categoriesResponse.IsSuccessStatusCode)
                 {
                     _logger.LogError("Không thể lấy danh sách danh mục từ API.");
-                    return View(new HomeViewModel { Books = books ?? new List<Book>(), Categories = new List<Category>() });
+                    return View(new HomeViewModel { Books = books ?? new List<Book>(), Categories = new List<Category>(), Authors = new List<Author>() });
                 }
 
                 var categoriesContent = await categoriesResponse.Content.ReadAsStringAsync();
                 var categories = JsonSerializer.Deserialize<List<Category>>(categoriesContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
+                // Gọi API để lấy danh sách tác giả
+                var authorsResponse = await _httpClient.GetAsync("api/author");
+                if (!authorsResponse.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Không thể lấy danh sách tác giả từ API.");
+                    return View(new HomeViewModel { Books = books ?? new List<Book>(), Categories = categories ?? new List<Category>(), Authors = new List<Author>() });
+                }
+
+                var authorsContent = await authorsResponse.Content.ReadAsStringAsync();
+                var authors = JsonSerializer.Deserialize<List<Author>>(authorsContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                // Tạo HomeViewModel và truyền vào view
                 var model = new HomeViewModel
                 {
                     Books = books ?? new List<Book>(),
-                    Categories = categories ?? new List<Category>()
+                    Categories = categories ?? new List<Category>(),
+                    Authors = authors ?? new List<Author>(),
+                    Search = search,
+                    CategoryId = categoryId,
+                    AuthorId = authorId,
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    PageSize = pageSize
                 };
 
                 return View(model);
@@ -52,7 +97,7 @@ namespace BookStore_Client.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi lấy dữ liệu cho trang chủ.");
-                return View(new HomeViewModel { Books = new List<Book>(), Categories = new List<Category>() });
+                return View(new HomeViewModel { Books = new List<Book>(), Categories = new List<Category>(), Authors = new List<Author>() });
             }
         }
 
