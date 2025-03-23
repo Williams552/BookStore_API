@@ -5,21 +5,74 @@
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
 }
 
-<h2>Book Details</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">Book Details</h2>
 
-<div>
-    <p><strong>Title:</strong> @Model.Title</p>
-    <p><strong>Description:</strong> @Model.Description</p>
-    <p><strong>Price:</strong> @Model.Price</p>
-    <p><strong>Stock:</strong> @Model.Stock</p>
-    <p><strong>Public Date:</strong> @Model.PublicDate?.ToString("yyyy-MM-dd")</p>
-    <p><strong>UpdateBy:</strong> @Model.UpdateBy</p>
-    <p><strong>Update Date:</strong> @Model.UpdateAt?.ToString("yyyy-MM-dd")</p>
-    <p><strong>Author:</strong> @Model.AuthorName</p>
-    <p><strong>Category:</strong> @Model.CategoryName</p>
-    <p><strong>Supplier:</strong> @Model.SupplierName</p>
-    <p><img src="@Model.ImageURL" alt="Book Image" style="max-width:200px;" /></p>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">@Model.Title</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Thông tin chi tiết -->
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="text-muted">Description:</th>
+                                <td>@Model.Description</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-muted">Price:</th>
+                                <td>@Model.Price.ToString("C")</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-muted">Stock:</th>
+                                <td>@Model.Stock</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-muted">Public Date:</th>
+                                <td>@Model.PublicDate?.ToString("yyyy-MM-dd")</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-muted">Update By:</th>
+                                <td>@Model.UpdateBy</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-muted">Update Date:</th>
+                                <td>@Model.UpdateAt?.ToString("yyyy-MM-dd")</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-muted">Author:</th>
+                                <td>@Model.AuthorName</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-muted">Category:</th>
+                                <td>@Model.CategoryName</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-muted">Supplier:</th>
+                                <td>@Model.SupplierName</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Hình ảnh -->
+                <div class="col-md-6 text-center">
+                    @if (!string.IsNullOrEmpty(Model.ImageURL))
+                    {
+                        <img src="@Model.ImageURL" alt="Book Image" class="img-fluid rounded" style="max-height: 300px; max-width: 100%;" />
+                    }
+                    else
+                    {
+                        <p class="text-muted">No image available</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <a asp-action="Index" class="btn btn-secondary me-2">Back to List</a>
+            <a asp-action="Edit" asp-route-id="@Model.BookID" class="btn btn-warning">Edit</a>
+        </div>
+    </div>
 </div>
-
-<a asp-action="Index" class="btn btn-secondary">Back to List</a>
-<a asp-action="Edit" asp-route-id="@Model.BookID" class="btn btn-warning">Edit</a>

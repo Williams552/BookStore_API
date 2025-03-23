@@ -5,16 +5,34 @@
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
 }
 
-<h2>Supplier Details</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">Supplier Details</h2>
 
-<div class="card">
-    <div class="card-body">
-        <h4>@Model.SupplierName</h4>
-        <p><strong>Phone:</strong> @Model.Phone</p>
-        <p><strong>Email:</strong> @Model.Email</p>
-        <p><strong>Address:</strong> @Model.Address</p>
-
-        <a asp-action="Edit" asp-route-id="@Model.SupplierID" class="btn btn-warning">Edit</a>
-        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">@Model.SupplierName</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-borderless">
+                <tbody>
+                    <tr>
+                        <th scope="row" class="text-muted">Phone:</th>
+                        <td>@Model.Phone</td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="text-muted">Email:</th>
+                        <td>@Model.Email</td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="text-muted">Address:</th>
+                        <td>@Model.Address</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer text-end">
+            <a asp-action="Index" class="btn btn-secondary me-2">Back to List</a>
+            <a asp-action="Edit" asp-route-id="@Model.SupplierID" class="btn btn-warning">Edit</a>
+        </div>
     </div>
 </div>

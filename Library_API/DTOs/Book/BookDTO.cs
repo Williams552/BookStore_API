@@ -24,6 +24,8 @@ namespace BookStore_API.Domain.DTO
         public DateOnly? PublicDate { get; set; }
 
         public string? ImageURL { get; set; }
+        public int? UpdateBy { get; set; }
+        public DateOnly? UpdateAt { get; set; }
 
     }
 }

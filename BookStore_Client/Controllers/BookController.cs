@@ -74,26 +74,72 @@ namespace BookStore_Client.Controllers
 
 
         // GET: Book/Create
-        public IActionResult Create()
+        // GET: Book/Create
+        public async Task<IActionResult> Create()
         {
-            return View();
+            var bookViewModel = new BookViewModel
+            {
+                Authors = await GetAuthors(),
+                Categories = await GetCategories(),
+                Suppliers = await GetSuppliers()
+            };
+            return View(bookViewModel);
         }
 
         // POST: Book/Create
+        // POST: Book/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Book book)
+        public async Task<IActionResult> Create(BookViewModel bookViewModel)
         {
-            if (!ModelState.IsValid) return View(book);
+            // Bỏ qua validation cho các trường readonly
+            ModelState.Remove("AuthorName");
+            ModelState.Remove("CategoryName");
+            ModelState.Remove("SupplierName");
+
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("❌ ModelState không hợp lệ:");
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine($"Lỗi: {error.ErrorMessage}");
+                }
+                bookViewModel.Authors = await GetAuthors();
+                bookViewModel.Categories = await GetCategories();
+                bookViewModel.Suppliers = await GetSuppliers();
+                return View(bookViewModel);
+            }
+
+            var book = new Book
+            {
+                Title = bookViewModel.Title,
+                Description = bookViewModel.Description,
+                Price = bookViewModel.Price,
+                Stock = bookViewModel.Stock,
+                PublicDate = bookViewModel.PublicDate.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.PublicDate.Value) : null,
+                ImageURL = bookViewModel.ImageURL,
+                UpdateBy = bookViewModel.UpdateBy,
+                UpdateAt = bookViewModel.UpdateAt.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.UpdateAt.Value) : null,
+                AuthorID = bookViewModel.AuthorID,
+                CategoryID = bookViewModel.CategoryID,
+                SupplierID = bookViewModel.SupplierID
+            };
 
             var jsonContent = new StringContent(JsonConvert.SerializeObject(book), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync(_apiUrl, jsonContent);
 
-            if (response.IsSuccessStatusCode) return RedirectToAction(nameof(Index));
-            return View(book);
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            Console.WriteLine($"❌ Lỗi khi gửi POST request: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+            bookViewModel.Authors = await GetAuthors();
+            bookViewModel.Categories = await GetCategories();
+            bookViewModel.Suppliers = await GetSuppliers();
+            return View(bookViewModel);
         }
 
-        // GET: Book/Edit/{id}
         // GET: Book/Edit/{id}
         // GET: Book/Edit/{id}
         public async Task<IActionResult> Edit(int id)
@@ -128,18 +174,23 @@ namespace BookStore_Client.Controllers
             return View(bookViewModel);
         }
 
+
         // POST: Book/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, BookViewModel bookViewModel)
         {
-            if (id != bookViewModel.BookID) return BadRequest();
+            // Bỏ qua validation cho các trường readonly
+            ModelState.Remove("AuthorName");
+            ModelState.Remove("CategoryName");
+            ModelState.Remove("SupplierName");
 
             if (!ModelState.IsValid)
             {
+                Console.WriteLine("❌ ModelState không hợp lệ:");
                 foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                 {
-                    Console.WriteLine($"ModelState Error: {error.ErrorMessage}");
+                    Console.WriteLine($"Lỗi: {error.ErrorMessage}");
                 }
                 bookViewModel.Authors = await GetAuthors();
                 bookViewModel.Categories = await GetCategories();
@@ -147,8 +198,6 @@ namespace BookStore_Client.Controllers
                 return View(bookViewModel);
             }
 
-
-            // Cập nhật thông tin
             var book = new Book
             {
                 BookID = bookViewModel.BookID,
@@ -158,25 +207,33 @@ namespace BookStore_Client.Controllers
                 Stock = bookViewModel.Stock,
                 PublicDate = bookViewModel.PublicDate.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.PublicDate.Value) : null,
                 ImageURL = bookViewModel.ImageURL,
-                UpdateBy = 1,
-                UpdateAt = DateOnly.FromDateTime(DateTime.Now),
                 AuthorID = bookViewModel.AuthorID,
                 CategoryID = bookViewModel.CategoryID,
-                SupplierID = bookViewModel.SupplierID
+                SupplierID = bookViewModel.SupplierID,
+                UpdateBy = bookViewModel.UpdateBy, // Thêm dòng này
+                UpdateAt = bookViewModel.UpdateAt.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.UpdateAt.Value) : null // Thêm dòng này
             };
 
-            var jsonContent = new StringContent(JsonConvert.SerializeObject(book), Encoding.UTF8, "application/json");
+            var json = JsonConvert.SerializeObject(book);
+            Console.WriteLine("Dữ liệu gửi lên API: " + json);
+            var jsonContent = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await _httpClient.PutAsync($"{_apiUrl}/{id}", jsonContent);
 
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("✔ Cập nhật thành công!");
+                return RedirectToAction(nameof(Index));
+            }
 
-            if (response.IsSuccessStatusCode) return RedirectToAction(nameof(Index));
-
+            Console.WriteLine($"❌ Lỗi khi gửi PUT request: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
             bookViewModel.Authors = await GetAuthors();
             bookViewModel.Categories = await GetCategories();
             bookViewModel.Suppliers = await GetSuppliers();
-
             return View(bookViewModel);
         }
+
+
+
 
 
 

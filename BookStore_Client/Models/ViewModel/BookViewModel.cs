@@ -1,4 +1,6 @@
-﻿namespace BookStore_Client.Models.ViewModels
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace BookStore_Client.Models.ViewModels
 {
     public class BookViewModel
     {
@@ -14,8 +16,11 @@
         public DateTime? UpdateAt { get; set; }
 
         // Thông tin liên quan (thay vì ID)
+        [NotMapped]
         public string AuthorName { get; set; }
+        [NotMapped]
         public string CategoryName { get; set; }
+        [NotMapped]
         public string SupplierName { get; set; }
 
         // ID để xử lý form
