@@ -106,5 +106,23 @@ namespace BookStore_API.Controllers
             await _bookRepository.Delete(book);
             return NoContent();
         }
+
+        // POST: api/book/list
+        [HttpPost("list")]
+        public async Task<ActionResult<IEnumerable<Book>>> GetBooksByIds([FromBody] List<int> bookIds)
+        {
+            if (bookIds == null || !bookIds.Any())
+            {
+                return BadRequest("Book IDs cannot be null or empty.");
+            }
+
+            var books = await _bookRepository.GetByCondition(b => bookIds.Contains(b.BookID), b => b.Author, b => b.Category, b => b.Supplier);
+            if (books == null || !books.Any())
+            {
+                return NotFound("No books found for the provided IDs.");
+            }
+
+            return Ok(books);
+        }
     }
 }

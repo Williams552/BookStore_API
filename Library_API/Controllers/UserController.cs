@@ -119,7 +119,7 @@ namespace BookStore_API.Controllers
         [HttpGet("by-email/{email}")]
         public async Task<ActionResult<User>> GetUserByEmail(string email)
         {
-            var user = await _userRepository.GetProfileByEmail(email);
+            var user = await _userRepository.GetFirstByCondition(u => u.Email == email);
             if (user == null)
             {
                 return NotFound($"User with email {email} not found.");

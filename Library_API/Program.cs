@@ -106,8 +106,6 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IDao<>), typeof(Dao<>));
 builder.Services.AddScoped<IMapperService, MapperService>();
 builder.Services.AddScoped<IBookService, BookService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICartService, CartService>();
 
 var app = builder.Build();

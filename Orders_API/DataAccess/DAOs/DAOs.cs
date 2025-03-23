@@ -4,14 +4,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace BookStore_API.DataAccess.DAOs
+namespace Orders_API.DataAccess.DAOs
 {
     public class Dao<T> : IDao<T> where T : class
     {
-        private readonly BookStoreContext _context;
+        private readonly OrderDbContext _context;
         private DbSet<T> _dbSet;
         private readonly string _primaryKeyName;
-        public Dao(BookStoreContext context)
+        public Dao(OrderDbContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();

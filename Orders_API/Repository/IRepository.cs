@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 
-namespace BookStore_API.DataAccess.DAOs
+namespace Orders_API.Repository
 {
-    public interface IDao<T> where T : class
+    public interface IRepository<T> where T : class
     {
         Task Add(T entity);
         Task Update(T entity);

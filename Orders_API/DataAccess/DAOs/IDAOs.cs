@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace BookStore_API.DataAccess.DAOs
+namespace Orders_API.DataAccess.DAOs
 {
     public interface IDao<T> where T : class
     {
