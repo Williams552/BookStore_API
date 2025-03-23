@@ -1,5 +1,11 @@
-var builder = WebApplication.CreateBuilder(args);
+using BookStore_API.DataAccess;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.EntityFrameworkCore;
 
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<BookStoreContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
@@ -10,8 +16,21 @@ builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(5);
     options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
+// Th�m Authentication (Google)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
 
+.AddCookie()
+.AddGoogle(options =>
+{
+
+
+    options.CallbackPath = "/signin-google"; // ???ng d?n callback
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

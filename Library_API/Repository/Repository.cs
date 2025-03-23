@@ -41,5 +41,10 @@ namespace BookStore_API.Repository
             // Chuyển đổi id thành kiểu đúng và truyền vào phương thức GetById của dao
             return await _dao.GetById(id, includes);
         }
+
+        public async Task<T> GetProfileByEmail(string email, params Expression<Func<T, object>>[] includes)
+        {
+            return await _dao.GetProfileByEmail(email, includes);
+        }
     }
 }

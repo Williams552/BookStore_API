@@ -1,0 +1,21 @@
+﻿@model BookStore_Client.Models.Supplier
+
+@{
+    ViewData["Title"] = "Delete Supplier";
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+}
+
+<h2>Delete Supplier</h2>
+
+<div class="alert alert-danger">
+    <h4>Are you sure you want to delete this supplier?</h4>
+    <p><strong>Supplier Name:</strong> @Model.SupplierName</p>
+    <p><strong>Phone:</strong> @Model.Phone</p>
+    <p><strong>Email:</strong> @Model.Email</p>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="SupplierID" />
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

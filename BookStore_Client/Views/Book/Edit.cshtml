@@ -1,0 +1,76 @@
+﻿@model BookStore_Client.Models.ViewModels.BookViewModel
+
+@{
+    ViewData["Title"] = "Edit Book";
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+}
+
+<h2>Edit Book</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="BookID" />
+
+    <div class="form-group">
+        <label asp-for="Title"></label>
+        <input asp-for="Title" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Price"></label>
+        <input asp-for="Price" class="form-control" type="number" step="0.01" required />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Stock"></label>
+        <input asp-for="Stock" class="form-control" type="number" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Image URL</label>
+        <input asp-for="ImageURL" class="form-control" type="text" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="PublicDate">Public Date</label>
+        <input asp-for="PublicDate" class="form-control" type="date" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UpdateBy">Updated By (User ID)</label>
+        <input asp-for="UpdateBy" class="form-control" type="number" readonly />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UpdateAt">Last Updated</label>
+        <input asp-for="UpdateAt" class="form-control" type="date" readonly />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="AuthorID">Author</label>
+        <select asp-for="AuthorID" asp-items="@(new SelectList(Model.Authors, "AuthorID", "FullName"))" class="form-control">
+            <option value="">-- Select Author --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="CategoryID">Category</label>
+        <select asp-for="CategoryID" asp-items="@(new SelectList(Model.Categories, "CategoryID", "CategoryName"))" class="form-control">
+            <option value="">-- Select Category --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="SupplierID">Supplier</label>
+        <select asp-for="SupplierID" asp-items="@(new SelectList(Model.Suppliers, "SupplierID", "SupplierName"))" class="form-control">
+            <option value="">-- Select Supplier --</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>

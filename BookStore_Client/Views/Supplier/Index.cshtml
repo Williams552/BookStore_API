@@ -1,0 +1,52 @@
+﻿@model List<BookStore_Client.Models.Supplier>
+
+
+@{
+    ViewData["Title"] = "Supplier List";
+
+}
+
+@{
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+}
+
+<h2>Supplier List</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Supplier</a>
+</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Supplier Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var supplier in Model)
+            {
+                <tr>
+                    <td>@supplier.SupplierName</td>
+                    <td>@supplier.Phone</td>
+                    <td>@supplier.Email</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@supplier.SupplierID" class="btn btn-info">View</a>
+                        <a asp-action="Edit" asp-route-id="@supplier.SupplierID" class="btn btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@supplier.SupplierID" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3" class="text-center">No categories found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
