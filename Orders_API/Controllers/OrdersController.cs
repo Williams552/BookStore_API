@@ -8,7 +8,7 @@ using System.Net.Http;
 
 namespace Orders_API.Controllers
 {
-    [Route("api/OrderService/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class OrderController : ControllerBase
     {
@@ -23,14 +23,14 @@ namespace Orders_API.Controllers
             _mapperService = mapperService;
             _orderService = orderService;
             _httpClient = httpClient.CreateClient();
-            _httpClient.BaseAddress = new Uri("https://localhost:7131/api/BookService/Book/");
+            _httpClient.BaseAddress = new Uri("https://localhost:7202/api/Book/");
         }
 
         // GET: api/order
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders()
         {
-            var orders = await Task.Run(() => _orderRepository.GetAll());
+            var orders = await Task.Run(() => _orderRepository.GetAll(o => o.OrderDetails));
             if (orders == null || !orders.Any())
             {
                 return NotFound("No orders found.");
@@ -42,6 +42,11 @@ namespace Orders_API.Controllers
         public async Task<ActionResult<OrderViewDTO>> GetOrderById(int id)
         {
             var order = await Task.Run(() => _orderRepository.GetById(id, o => o.OrderDetails));
+
+            if (order == null)
+            {
+                return NotFound($"Order with ID {id} not found.");
+            }
 
             var orderDTO = _mapperService.MapToDto<Order, OrderViewDTO>(order);
 
@@ -113,6 +118,38 @@ namespace Orders_API.Controllers
 
             await Task.Run(() => _orderRepository.Delete(order));
             return NoContent();
+        }
+
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<IEnumerable<OrderViewDTO>>> GetOrderByUser(int userId)
+        {
+            var orders = await Task.Run(() => _orderRepository.GetByCondition(o => o.UserID == userId, o => o.OrderDetails));
+
+            if (orders == null || !orders.Any())
+            {
+                return NotFound($"No orders found for user with ID {userId}.");
+            }
+
+            var orderDTOs = orders.Select(order =>
+            {
+                var orderDTO = _mapperService.MapToDto<Order, OrderViewDTO>(order);
+                var orderDetails = orderDTO.OrderDetails.ToList();
+
+                foreach (var orderDetail in orderDetails)
+                {
+                    var response = _httpClient.GetAsync(orderDetail.BookID.ToString()).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var book = response.Content.ReadFromJsonAsync<BookDTO>().Result;
+                        orderDetail.Book = book;
+                    }
+                }
+
+                orderDTO.OrderDetails = orderDetails;
+                return orderDTO;
+            }).ToList();
+
+            return Ok(orderDTOs);
         }
     }
 }

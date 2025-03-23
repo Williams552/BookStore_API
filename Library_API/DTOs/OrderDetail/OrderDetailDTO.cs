@@ -4,6 +4,7 @@ namespace BookStore_API.Domain.DTO
 {
     public class OrderDetailDTO
     {
-        public int OrderDetailID { get; set; }
+        public int? BookID { get; set; }
+        public int? Quantity { get; set; }
     }
 }

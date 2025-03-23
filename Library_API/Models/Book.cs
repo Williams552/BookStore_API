@@ -37,8 +37,6 @@ public partial class Book
 
     public virtual Category? Category { get; set; }
 
-    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
-
     public virtual Supplier? Supplier { get; set; }
 
     public virtual ICollection<WishList> WishLists { get; set; } = new List<WishList>();
