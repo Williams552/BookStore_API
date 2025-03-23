@@ -90,6 +90,7 @@ namespace BookStore_Client.Controllers
                     CurrentPage = page,
                     TotalPages = totalPages,
                     PageSize = pageSize
+
                 };
 
                 return View(model);

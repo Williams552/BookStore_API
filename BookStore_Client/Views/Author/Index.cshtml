@@ -1,0 +1,48 @@
+﻿@model IEnumerable<BookStore_Client.Models.Author>
+
+@{
+    ViewData["Title"] = "List of Authors";
+}
+@{
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+}
+<h2>@ViewData["Title"]</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Author</a>
+</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Image</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var author in Model)
+        {
+            <tr>
+                <td>@author.AuthorID</td>
+                <td>@author.FullName</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(author.ImageURL))
+                    {
+                        <img src="@author.ImageURL" alt="@author.FullName" width="50" height="50">
+                    }
+                    else
+                    {
+                        <span>No image available</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@author.AuthorID" class="btn btn-info">View</a>
+                    <a asp-action="Edit" asp-route-id="@author.AuthorID" class="btn btn-warning">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@author.AuthorID" class="btn btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

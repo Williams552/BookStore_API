@@ -3,6 +3,7 @@ using BookStore_API.Models;
 using BookStore_API.Repository;
 using BookStore_API.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BookStore_API.Controllers
 {
@@ -97,6 +98,27 @@ namespace BookStore_API.Controllers
             }
 
             var user = _mapperService.MapToDto<UserDTO, User>(userDTO);
+
+            // Giữ lại giá trị Username nếu UserDTO không cung cấp
+            if (string.IsNullOrEmpty(user.Username))
+            {
+                user.Username = existingUser.Username;
+            }
+
+            // Đảm bảo ImageUrl được cập nhật
+            if (string.IsNullOrEmpty(user.ImageUrl))
+            {
+                user.ImageUrl = existingUser.ImageUrl; // Giữ giá trị cũ nếu không có giá trị mới
+            }
+
+
+
+
+            // Giữ lại các trường không được phép thay đổi
+            user.CreateAt = existingUser.CreateAt; // Giữ nguyên CreateAt
+            user.IsDelete = existingUser.IsDelete; // Giữ nguyên IsDelete
+            user.Role = existingUser.Role;         // Giữ nguyên Role
+
 
             await Task.Run(() => _userRepository.Update(user));
             return NoContent();
