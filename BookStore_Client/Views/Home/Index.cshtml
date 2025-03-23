@@ -13,15 +13,21 @@
                     @foreach (var book in Model.Books)
                     {
                         <div class="col">
-                            <div class="bg-white p-3 bordered-shadow">
-                                <img src="@book.ImageURL" alt="Product Image" class="img-fluid">
+                            <div class="bg-white p-3 bordered-shadow product-item">
+                                @if (!string.IsNullOrEmpty(book.ImageURL))
+                                {
+                                    <img src="@book.ImageURL" alt="@book.Title" class="img-fluid product-image" width="310" height="475" />
+                                }
+                                else
+                                {
+                                    <img src="/images/shop/product-image.png" alt="Product Image" class="img-fluid product-image" width="310" height="475" />
+                                }
                                 <p class="py-2">@(book.Category?.CategoryName ?? "Uncategorized")</p>
-                                <a href="product-single.html" class="text-decoration-none">
+                                <a href="@Url.Action("Detail", "Home", new { id = book.BookID })" class="text-decoration-none">
                                     <h3>@book.Title</h3>
                                 </a>
-                                <div class="d-flex justify-content-between pt-3">
-                                    <h4 class="text-primary">@(book.Price?.ToString("C"))</h4>
-                                    <h5 class="text-decoration-line-through">@((book.Price * 0.8m)?.ToString("C"))</h5>
+                                <div class="d-flex justify-content-between pt-1">
+                                    <h4 class="text-primary">@(book.Price?.ToString("C") ?? "N/A")</h4>
                                 </div>
                             </div>
                         </div>

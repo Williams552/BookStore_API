@@ -1,441 +1,164 @@
-﻿@{
+﻿@model BookStore_Client.Models.DetailViewModel
+
+@{
     ViewData["Title"] = "Detail Page";
 }
 
 <!-- product content -->
 <section class="product pt-100 pb-5">
     <div class="container">
-        <div class="row border">
-            <div class="col-md-5 ps-0">
-                <!-- product thumbnail -->
-                <div class="p-3 bg-light border-bottom border-end">
-                    <img src="/images/shop/product-image.png" class="img-fluid" alt="Book">
+        @if (Model.Book != null)
+        {
+            <div class="row border">
+                <div class="col-md-5 ps-0">
+                    <!-- product thumbnail -->
+                    <div class="p-3 bg-light border-bottom border-end">
+                        @if (!string.IsNullOrEmpty(Model.Book.ImageURL))
+                        {
+                            <img src="@Model.Book.ImageURL" class="img-fluid product-image" width="310" height="475" alt="@Model.Book.Title" />
+                        }
+                        else
+                        {
+                            <img src="/images/shop/product-image.png" class="img-fluid product-image" width="310" height="475" alt="Book" />
+                        }
+                    </div>
                 </div>
-
-                <!-- product gallery -->
-                <div class="row row-cols-3 gx-3 py-3 ps-3">
-                    <div class="col">
+                <div class="col-md-7">
+                    <div class="p-3">
+                        <div class="pb-3 border-bottom">
+                            <p class="text-primary mb-2">Book Feature</p>
+                            <h2 class="fs-2">@Model.Book.Title</h2>
+                            <div class="pt-2">
+                                <span class="fs-3 fw-bold text-primary">@Model.Book.Price?.ToString("C")</span>
+                            </div>
+                            <!-- product rating -->
+                            <div class="pt-2">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-secondary"></i>
+                                <span class="ps-3">(50 Reviews)</span>
+                            </div>
+                        </div>
+                        <!-- product description -->
                         <div>
-                            <img src="/images/shop/product-gallery-1.png" class="img-fluid"
-                                 alt="Book Gallery">
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div>
-                            <img src="/images/shop/product-gallery-2.png" class="img-fluid"
-                                 alt="Book Gallery">
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div>
-                            <img src="/images/shop/product-gallery-3.png" class="img-fluid"
-                                 alt="Book Gallery">
-                        </div>
-                    </div>
-                </div><!-- product gallery end-->
-            </div>
-            <div class="col-md-7">
-                <div class="p-3">
-                    <div class="pb-3 border-bottom">
-                        <p class="text-primary mb-2">Book Feature</p>
-                        <h2 class="fs-2">God Who Hate Glitterign Stars</h2>
-                        <div class="pt-2">
-                            <span class="fs-3 fw-bold text-muted text-decoration-line-through">55.00$</span>
-                            <span class="fs-3 fw-bold text-primary ms-3">$75.00</span>
-                        </div>
-                        <!-- product rating -->
-                        <div class="pt-2">
-                            <i class="bi bi-star-fill text-warning"></i>
-                            <i class="bi bi-star-fill text-warning"></i>
-                            <i class="bi bi-star-fill text-warning"></i>
-                            <i class="bi bi-star-fill text-warning"></i>
-                            <i class="bi bi-star-fill text-secondary"></i>
-                            <span class="ps-3">(50 Reviews)</span>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="pt-4">
-                            Orem ipsum dolor sit amet, consectetur adipiscing elit, eius Lorem ipsum
-                            Lorem dolor sit amet, consectetur adipiscing elit, eius mod tempor incididunt labore
-                            tempor incididunt ut labore consectetur adipiscing elit.
-                        </p>
+                            <p class="pt-4">
+                                @Model.Book.Description
+                            </p>
 
-                        <ul class="list-col-2 li-unstyled responsive-grid ps-0 mb-0 check-icon-sm pt-4">
-                            <li class="mb-3">
-                                <i class="bi bi-check-lg"></i><span class="ms-2">
-                                    Publisher : Jonnoni
-                                    Publiction
-                                </span>
-                            </li>
-                            <li class="mb-3">
-                                <i class="bi bi-check-lg"></i><span class="ms-2">
-                                    Publish Date : October 20,
-                                    2022
-                                </span>
-                            </li>
-                            <li class="mb-3">
-                                <i class="bi bi-check-lg"></i><span class="ms-2">
-                                    In Stock <span class="text-primary">(only 7 Copies Left)</span>
-                                </span>
-                            </li>
-                            <li class="mb-3">
-                                <i class="bi bi-check-lg"></i><span class="ms-2">ISBN-10 : 0236547851</span>
-                            </li>
-                            <li class="mb-3">
-                                <i class="bi bi-check-lg"></i><span class="ms-2">ISBN-13 : 2547810321560</span>
-                            </li>
-                        </ul>
-                    </div>
+                            <!-- product publisher -->
+                            <ul class="list-col-2 li-unstyled responsive-grid ps-0 mb-0 check-icon-sm pt-4">
+                                <li class="mb-3">
+                                    <i class="bi bi-check-lg"></i>
+                                    <span class="ms-2">
+                                        Publisher: @(Model.Book.Supplier?.SupplierName ?? "Unknown")
+                                    </span>
+                                </li>
+                                <li class="mb-3">
+                                    <i class="bi bi-check-lg"></i>
+                                    <span class="ms-2">
+                                        Publish Date: @(Model.Book.PublicDate?.ToString("MMMM dd, yyyy") ?? "Unknown")
+                                    </span>
+                                </li>
+                                <li class="mb-3">
+                                    <i class="bi bi-check-lg"></i>
+                                    <span class="ms-2">
+                                        In Stock <span class="text-primary">(only @(Model.Book.Stock ?? 0) Copies Left)</span>
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
 
-                    <div class="d-flex justify-content-between align-items-center pe-lg-5 border-top border-bottom mt-4 py-3">
-                        <div class="d-flex gap-3 pe-5 border-end">
-                            <img src="/images/shop/author.png" class="img-fluid" alt="Author Image">
-                            <div class="d-flex flex-column my-auto">
-                                <span class="fs-4">Hossain Sayem</span>
-                                <span class="d-inline-block">Author & Writer</span>
+                        <!-- author -->
+                        <div class="d-flex justify-content-between align-items-center pe-lg-5 border-top border-bottom mt-4 py-3">
+                            <div class="d-flex gap-3 pe-5 border-end">
+                                @if (!string.IsNullOrEmpty(Model.Book.Author?.ImageURL))
+                                {
+                                    <img src="@Model.Book.Author.ImageURL" class="img-fluid author-avatar" alt="Author Image" style="width: 50px; height: 50px;" />
+                                }
+                                else
+                                {
+                                    <img src="/images/shop/author.png" class="img-fluid author-avatar" alt="Author Image" style="width: 50px; height: 50px;" />
+                                }
+                                <div class="d-flex flex-column my-auto">
+                                    <span class="fs-4">@(Model.Book.Author?.FullName ?? "Unknown")</span>
+                                    <span class="d-inline-block">Author & Writer</span>
+                                </div>
+                            </div>
+
+                            <div class="ps-2">
                             </div>
                         </div>
 
-                        <div class="ps-2">
-                            <img src="/images/shop/author-signature.png" class="img-fluid"
-                                 alt="Author Signature">
+                        <!-- add to cart buttons -->
+                        <div class="d-flex gap-4 align-items-center py-30 border-bottom">
+                            <a href="#" class="btn btn-dark">
+                                <i class="fa-solid fa-plus"></i> 02 <i class="fa-solid fa-minus"></i>
+                            </a>
+                            <a href="@Url.Action("Cart", "Order")" class="btn btn-primary">Add To Cart</a>
+                        </div>
+
+                        <!-- product categories -->
+                        <div class="pt-4">
+                            <ul class="li-unstyled ps-0 mb-0">
+                                <li><span class="fw-bold pe-2">Category</span> : @(Model.Book.Category?.CategoryName ?? "Unknown")</li>
+                                <li><span class="fw-bold pe-5">Tags</span>: Book, Novel, Poems</li>
+                            </ul>
                         </div>
                     </div>
-
-                    <!-- add to cart buttons -->
-                    <div class="d-flex gap-4 align-items-center py-30 border-bottom">
-                        <a href="#" class="btn btn-dark">
-                            <i class="fa-solid fa-plus"></i> 02 <i class="fa-solid fa-minus"></i>
-                        </a>
-                        <a href="cart.html" class="btn btn-primary">Add To Cart</a>
-                    </div>
-
-                    <!-- product categories -->
-                    <div class="pt-4">
-                        <ul class="li-unstyled ps-0 mb-0">
-                            <li><span class="fw-bold pe-5">SKU</span> : Food-Collections</li>
-                            <li><span class="fw-bold pe-2">Category</span> : Photography</li>
-                            <li><span class="fw-bold pe-5">Tags</span> : Book, Novel, Poems</li>
-                            <li>
-                                <span class="fw-bold pe-5">Share</span> :
-                                <ul class="d-inline-flex gap-4 ps-0 mb-0">
-                                    <li class="list-unstyled">
-                                        <a href="#">
-                                            <i class="fa-brands fa-facebook-f"></i>
-                                        </a>
-                                    </li>
-                                    <li class="list-unstyled">
-                                        <a href="#"><i class="fa-brands fa-twitter"></i></a>
-                                    </li>
-                                    <li class="list-unstyled">
-                                        <a href="#">
-                                            <i class="fa-brands fa-linkedin-in"></i>
-                                        </a>
-                                    </li>
-                                    <li class="list-unstyled">
-                                        <a href="#"><i class="fa-brands fa-instagram"></i></a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-
                 </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <p>Book not found.</p>
+        }
     </div>
 </section>
 <!-- product content end -->
-<!-- product specifications -->
-<section class="product-meta pb-100">
-    <div class="container">
-        <h3 class="fs-2">Product Specification & Summary</h3>
-
-
-        <!-- <nav class="tab nav nav-pills flex-column flex-sm-row align-items-center w-50 py-3 rounded-1 mt-5 mb-3">
-            <a class="flex-sm-fill text-sm-center nav-link" aria-current="page" href="#">Summary</a>
-            <a class="flex-sm-fill text-sm-center nav-link active" href="#">Specification</a>
-            <a class="flex-sm-fill text-sm-center nav-link" href="#">Authors</a>
-            <a class="flex-sm-fill text-sm-center nav-link">Reviews</a>
-        </nav> -->
-
-
-
-        <div class="pt-5">
-            <div class="row">
-                <div class="col-lg-7">
-                    <div class="bg-light ps-3 pe-1 pt-3 pb-1 rounded-2">
-                        <ul class="nav nav-pills mb-3 ps-4" id="pills-tab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link py-3 px-5  active" id="pills-summary-tab"
-                                        data-bs-toggle="pill" data-bs-target="#pills-summary" type="button" role="tab"
-                                        aria-controls="pills-summary" aria-selected="true">
-                                    Summary
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link py-3 px-5 " id="pills-specification-tab"
-                                        data-bs-toggle="pill" data-bs-target="#pills-specification" type="button"
-                                        role="tab" aria-controls="pills-specification"
-                                        aria-selected="false">
-                                    Specification
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link py-3 px-5 " id="pills-author-tab" data-bs-toggle="pill"
-                                        data-bs-target="#pills-author" type="button" role="tab"
-                                        aria-controls="pills-author" aria-selected="false">
-                                    Authors
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link py-3 px-5 " id="pills-review-tab" data-bs-toggle="pill"
-                                        data-bs-target="#pills-review" type="button" role="tab"
-                                        aria-controls="pills-review" aria-selected="false">
-                                    Reviews
-                                </button>
-                            </li>
-
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab-content mt-4" id="pills-tabContent">
-                <div class="tab-pane fade show active" id="pills-summary" role="tabpanel"
-                     aria-labelledby="pills-summary-tab" tabindex="0">
-                    <div>
-                        <table class="product-specifications">
-                            <thead>
-                                <tr>
-                                    <td class="meta">Title</td>
-                                    <td class="specification">God Who Hate Glitterign Stars</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="meta">Author</td>
-                                    <td class="specification">Hossain Sayem</td>
-                                </tr>
-                                <tr>
-                                    <td class="meta">Publisher</td>
-                                    <td class="specification">Another publication</td>
-                                </tr>
-                                <tr>
-                                    <td class="meta">ISBN</td>
-                                    <td class="specification">9789845020206</td>
-                                </tr>
-                                <tr>
-                                    <td class="meta">Edition</td>
-                                    <td class="specification">7th Printed, 2022</td>
-                                </tr>
-                                <tr>
-                                    <td class="meta">Number of Pages</td>
-                                    <td class="specification">854</td>
-                                </tr>
-                                <tr>
-                                    <td class="meta">Country</td>
-                                    <td class="specification">Unaited State</td>
-                                </tr>
-                                <tr>
-                                    <td class="meta">Language</td>
-                                    <td class="specification">English, Bengli, Hindi</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="pills-specification" role="tabpanel"
-                     aria-labelledby="pills-specification-tab" tabindex="0">
-                    <div>
-                        <table class="product-specifications">
-                            <thead>
-                                <tr>
-                                    <td class="meta">Title</td>
-                                    <td class="specification">God Who Hate Glitterign Stars</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="meta">Format</td>
-                                    <td class="specification">Ebook, Hard Copy</td>
-                                </tr>
-                                <tr>
-                                    <td class="meta">Pages</td>
-                                    <td class="specification">460</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="pills-author" role="tabpanel" aria-labelledby="pills-author-tab"
-                     tabindex="0">
-                    <section class="about-section-4">
-                        <div class="row g-5">
-                            <div class="col-lg-4">
-                                <div class="rounded-circle overflow-hidden author-image-scle">
-                                    <img src="/images/author.jpg" class="img-fluid" alt="author img">
-                                </div>
-                            </div>
-
-                            <div class="col-lg-8">
-                                <div class="d-grid gap-3 ps-5">
-                                    <h3 class="fs-2 fw-bold">Mohon Smith Lore</h3>
-                                    <div class="author-quote px-20 py-2">
-                                        <p class="fs-4 lh-sm fw-normal text-muted">
-                                            A book is a dream that you
-                                            hold in your hand.
-                                            Whenever you read a good book, somewhere in the world a door opens
-                                            to allow in more
-                                            light.
-                                        </p>
-                                    </div>
-                                    <p class="text-muted">
-                                        Hi, I am <span class="fw-bold">
-                                            Mohon smith
-                                            lore
-                                        </span>, must be a
-                                        little
-                                        crazy to write a
-                                        good book.
-                                    </p>
-                                    <p class="text-muted">
-                                        Men do not understand books until they have a certain
-                                        amount of life,
-                                        or
-                                        at any rate no man
-                                        understands a deep book, until he has seen and lived at least part of
-                                        its contents. Ut
-                                        quostoi cupiditate, nemo debitis, explicabo voluptas.
-                                    </p>
-                                    <div class="d-flex gap-3 pookpress-author-slink mb-4">
-                                        <a href="#" class="text-decoration-none border rounded-circle">
-                                            <span class="fa-brands fa-facebook-f"></span>
-                                        </a>
-                                        <a href="#" class="text-decoration-none border rounded-circle">
-                                            <span class="fa-brands fa-twitter"></span>
-                                        </a>
-                                        <a href="#" class="text-decoration-none border rounded-circle">
-                                            <span class="fa-brands fa-google-plus-g"></span>
-                                        </a>
-                                        <a href="#" class="text-decoration-none border rounded-circle">
-                                            <span class="fa-brands fa-linkedin-in"></span>
-                                        </a>
-                                        <a href="#" class="text-decoration-none border rounded-circle">
-                                            <span class="fa-solid fa-rss"></rss>
-                                        </a>
-                                    </div>
-                                    <div class="signature">
-                                        <img src="/images/signature.png" alt="" class="img-fluid">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-                <div class="tab-pane fade" id="pills-review" role="tabpanel" aria-labelledby="pills-review-tab"
-                     tabindex="0">
-                    <section class="review-section-3 pt-4">
-                        <div class="row justify-content-center">
-                            <div class="col-md-10">
-                                <div class="text-center process-title-2">
-                                    <p class="mb-32 fs-5 fw-normal">
-                                        Lorem ipsum dolor sit amet,
-                                        consectetur
-                                        adipiscing
-                                        elit, eius Lorem ipsum dolor sit amet, consectetur
-                                        adipiscing elit, eius mod
-                                        tempor incididunt ut
-                                        labore mod tempor incididunt ut laboretur adipiscing elit,
-                                        eius Lorem ipsum
-                                        dolor sit amet, consectetur
-                                        adipiscing elit
-                                    </p>
-                                    <h3>Alexander Mason</h3>
-                                    <p class="mb-32">(Owner, Charitro)</p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-</section>
-<!-- product specifications end-->
 <!-- product section -->
 <section class="product-section py-100" id="product-id">
-    <div class="container">
+    <div class="container-fluid">
         <div class="section-title text-center">
             <h2 class="display-4 fw-bold separator">Pick The Related Products</h2>
         </div>
 
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 gx-4 gy-4">
-            <div class="col">
-                <div class="fit-to-content bg-white py-3 px-3 rounded-2">
-                    <img src="/images/home/product-img-1.png" alt="Product Image" class="img-fluid">
-                    <p class="py-2">personality, science</p>
-                    <a href="product-single.html" class="text-decoration-none">
-                        <h3>No place to go except for up</h3>
-                    </a>
-                    <div class="d-flex justify-content-between pt-3">
-                        <h4 class="text-primary">75.00$</h4>
-                        <h5 class="text-decoration-line-through">55.00$</h5>
+            @if (Model.RelatedBooks != null && Model.RelatedBooks.Any())
+            {
+                @foreach (var book in Model.RelatedBooks)
+                {
+                    <div class="col">
+                        <div class="product-item fit-to-content bg-white py-3 px-3 rounded-2">
+                            @if (!string.IsNullOrEmpty(book.ImageURL))
+                            {
+                                <img src="@book.ImageURL" alt="@book.Title" class="img-fluid product-image" width="310" height="475" />
+                            }
+                            else
+                            {
+                                <img src="/images/home/product-img-1.png" alt="Product Image" class="img-fluid product-image" width="310" height="475" />
+                            }
+                            <p class="py-2">@(book.Category?.CategoryName ?? "Unknown")</p>
+                            <a href="@Url.Action("Detail", "Home", new { id = book.BookID })" class="text-decoration-none">
+                                <h3>@book.Title</h3>
+                            </a>
+                            <div class="d-flex justify-content-between pt-3">
+                                <h4 class="text-primary">@(book.Price?.ToString("C") ?? "N/A")</h4>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="col">
-                <div class="fit-to-content bg-white py-3 px-3 rounded-2">
-                    <img src="/images/home/product-img-2.png" alt="Product Image" class="img-fluid">
-                    <p class="py-2">personality, science</p>
-                    <a href="product-single.html" class="text-decoration-none">
-                        <h3>No place to go except for up</h3>
-                    </a>
-                    <div class="d-flex justify-content-between pt-3">
-                        <h4 class="text-primary">75.00$</h4>
-                        <h5 class="text-decoration-line-through">55.00$</h5>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col">
-                <div class="fit-to-content bg-white py-3 px-3 rounded-2">
-                    <img src="/images/home/product-img-3.png" alt="Product Image" class="img-fluid">
-                    <p class="py-2">personality, science</p>
-                    <a href="product-single.html" class="text-decoration-none">
-                        <h3>No place to go except for up</h3>
-                    </a>
-                    <div class="d-flex justify-content-between pt-3">
-                        <h4 class="text-primary">75.00$</h4>
-                        <h5 class="text-decoration-line-through">55.00$</h5>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col">
-                <div class="fit-to-content bg-white py-3 px-3 rounded-2">
-                    <img src="/images/home/product-img-4.png" alt="Product Image" class="img-fluid">
-                    <p class="py-2">personality, science</p>
-                    <a href="product-single.html" class="text-decoration-none">
-                        <h3>No place to go except for up</h3>
-                    </a>
-                    <div class="d-flex justify-content-between pt-3">
-                        <h4 class="text-primary">75.00$</h4>
-                        <h5 class="text-decoration-line-through">55.00$</h5>
-                    </div>
-                </div>
-            </div>
-
+                }
+            }
+            else
+            {
+                <p class="text-center">No related books available.</p>
+            }
         </div>
 
         <div class="text-center mt-5">
-            <a class="btn btn-primary" href="products.html" role="button">Find in Shop Author</a>
+            <a class="btn btn-primary" href="@Url.Action("Index", "Home")" role="button">Find More Books</a>
         </div>
-
     </div>
-
 </section>
 <!--End product section -->
