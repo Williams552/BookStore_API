@@ -17,7 +17,13 @@ namespace BookStore_API.DataAccess.DAOs
             _dbSet = _context.Set<T>();
 
             var entityType = _context.Model.FindEntityType(typeof(T));
+            if (entityType == null)
+                throw new InvalidOperationException($"Entity {typeof(T).Name} is not registered in DbContext!");
+
             var primaryKey = entityType.FindPrimaryKey();
+            if (primaryKey == null)
+                throw new InvalidOperationException($"Entity {typeof(T).Name} has no primary key defined!");
+
             _primaryKeyName = primaryKey.Properties[0].Name;
         }
 
@@ -73,6 +79,26 @@ namespace BookStore_API.DataAccess.DAOs
             // Sử dụng primary key đã lấy được
             return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, _primaryKeyName) == (int)id
             );
+        }
+
+        public async Task<IEnumerable<T>> GetByCondition(Expression<Func<T, bool>> expression, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            return await query.Where(expression).ToListAsync();
+        }
+
+        public async Task<T> GetFirstByCondition(Expression<Func<T, bool>> expression, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            return await query.FirstOrDefaultAsync(expression);
         }
     }
 }

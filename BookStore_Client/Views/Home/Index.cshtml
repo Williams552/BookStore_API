@@ -1,0 +1,213 @@
+﻿@model BookStore_Client.Models.HomeViewModel
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<section id="section-blog" class="blog-section">
+    <div class="container">
+        <div class="row gx-5 gy-4">
+            <div class="col-md-9">
+                <div class="row row-cols-2 row-cols-md-3 gx-4 gy-4">
+                    <!-- Dynamic Products using Book Model -->
+                    @if (Model.Books != null && Model.Books.Any())
+                    {
+                        @foreach (var book in Model.Books)
+                        {
+                            <div class="col">
+                                <div class="bg-white p-3 bordered-shadow product-item">
+                                    @if (!string.IsNullOrEmpty(book.ImageURL))
+                                    {
+                                        <img src="@book.ImageURL" alt="@book.Title" class="img-fluid product-image" width="310" height="475" />
+                                    }
+                                    else
+                                    {
+                                        <img src="https://www.keycdn.com/img/blog/responsive-images.png" alt="Product Image" class="img-fluid product-image" width="310" height="475" />
+                                    }
+                                    <p class="py-2">@(book.Category?.CategoryName ?? "Uncategorized")</p>
+                                    <a href="@Url.Action("Detail", "Home", new { id = book.BookID })" class="text-decoration-none">
+                                        <h3>@book.Title</h3>
+                                    </a>
+                                    <div class="d-flex justify-content-between pt-1">
+                                        <h4 class="text-primary">@(book.Price?.ToString("C") ?? "N/A")</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-center">No books found.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Sidebar Start -->
+            <div class="col-md-3 d-flex flex-column gap-4 border rounded-2 p-4 sidebar">
+                <!-- Search Box -->
+                <div class="search-box position-relative">
+                    <form asp-action="Index" method="get">
+                        <input type="search" class="form-control ps-4" name="search" placeholder="Search..." value="@Model.Search">
+                        <button type="submit" class="btn btn-link search-icon" style="position: absolute; right: 10px; top: 40%; transform: translateY(-50%);">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Popular Category using Category Model -->
+                <div class="blog-category">
+                    <h3 class="py-3 border-bottom">Popular Category</h3>
+                    <ul class="mt-3 ps-0">
+                        @foreach (var category in Model.Categories)
+                        {
+                            <li class="list-unstyled">
+                                @if (Model.CategoryId == category.CategoryID)
+                                {
+                                    // Nếu Category đang active, nhấp vào sẽ bỏ lọc (categoryId = null)
+                                    <a href="@Url.Action("Index", new { search = Model.Search, categoryId = (int?)null, authorId = Model.AuthorId, page = 1 })" class="ms-2 text-primary">
+                                        @category.CategoryName
+                                    </a>
+                                }
+                                else
+                                {
+                                    // Nếu Category không active, nhấp vào sẽ lọc theo Category đó
+                                    <a href="@Url.Action("Index", new { search = Model.Search, categoryId = category.CategoryID, authorId = Model.AuthorId, page = 1 })" class="ms-2">
+                                        @category.CategoryName
+                                    </a>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+
+                <!-- Popular Authors -->
+                <div class="blog-category">
+                    <h3 class="py-3 border-bottom">Popular Authors</h3>
+                    <ul class="mt-3 ps-0">
+                        @foreach (var author in Model.Authors)
+                        {
+                            <li class="list-unstyled">
+                                @if (Model.AuthorId == author.AuthorID)
+                                {
+                                    // Nếu Author đang active, nhấp vào sẽ bỏ lọc (authorId = null)
+                                    <a href="@Url.Action("Index", new { search = Model.Search, categoryId = Model.CategoryId, authorId = (int?)null, page = 1 })" class="ms-2 text-primary">
+                                        @author.FullName
+                                    </a>
+                                }
+                                else
+                                {
+                                    // Nếu Author không active, nhấp vào sẽ lọc theo Author đó
+                                    <a href="@Url.Action("Index", new { search = Model.Search, categoryId = Model.CategoryId, authorId = author.AuthorID, page = 1 })" class="ms-2">
+                                        @author.FullName
+                                    </a>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+
+                <!-- Recent Posts -->
+                <div class="blog-posts">
+                    <h3 class="py-3 border-bottom">Our Recent Books</h3>
+                    @if (Model.Books != null && Model.Books.Any())
+                    {
+                        var recentBooks = Model.Books.Take(3);
+                        foreach (var book in recentBooks)
+                        {
+                            <div class="d-flex responsive-wrap gap-3 border-bottom py-4">
+                                @if (!string.IsNullOrEmpty(book.ImageURL))
+                                {
+                                    <img src="@book.ImageURL" class="img-fluid" alt="@book.Title" style="width: 50px; height: 75px;" />
+                                }
+                                else
+                                {
+                                    <img src="/images/shop/recent-book-1.png" class="img-fluid" alt="Post Thumbnail" style="width: 50px; height: 75px;" />
+                                }
+                                <div class="d-flex flex-column gap-2">
+                                    <a href="@Url.Action("Detail", "Home", new { id = book.BookID })">
+                                        <h6>@book.Title</h6>
+                                    </a>
+                                    <span>@(book.Price?.ToString("C") ?? "N/A")</span>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- Post Tags -->
+                <div>
+                    <h3 class="py-3 border-bottom">BookPress Tags</h3>
+                    <span class="d-block mt-3">
+                        Biography, bestseller, adventure, biography Design, Fiction, Novel,
+                        Books
+                    </span>
+                </div>
+
+                <!-- Social Links -->
+                <div class="social-links">
+                    <h3 class="py-3 border-bottom">Follows Us:</h3>
+                    <ul class="mt-3 d-flex gap-4 ps-0">
+                        <li class="list-unstyled">
+                            <a href="#" target="_blank">
+                                <i class="fa-brands fa-facebook-f"></i>
+                            </a>
+                        </li>
+                        <li class="list-unstyled">
+                            <a href="#" target="_blank">
+                                <i class="fa-brands fa-twitter"></i>
+                            </a>
+                        </li>
+                        <li class="list-unstyled">
+                            <a href="#" target="_blank">
+                                <i class="fa-brands fa-linkedin-in"></i>
+                            </a>
+                        </li>
+                        <li class="list-unstyled">
+                            <a href="#" target="_blank">
+                                <i class="fa-brands fa-instagram"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div><!-- Sidebar End -->
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrap my-7">
+            @if (Model.TotalPages > 1)
+            {
+                <ul class="d-flex justify-content-start align-items-center gap-3 ps-0">
+                    <!-- Previous Page -->
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <li>
+                            <a href="@Url.Action("Index", new { search = Model.Search, categoryId = Model.CategoryId, authorId = Model.AuthorId, page = Model.CurrentPage - 1, pageSize = Model.PageSize })"><i class="bi bi-arrow-left"></i></a>
+                        </li>
+                    }
+
+                    <!-- Page Numbers -->
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="@(Model.CurrentPage == i ? "active" : "")">
+                            <a href="@Url.Action("Index", new { search = Model.Search, categoryId = Model.CategoryId, authorId = Model.AuthorId, page = i, pageSize = Model.PageSize })">@i</a>
+                        </li>
+                    }
+
+                    <!-- Next Page -->
+                    @if (Model.CurrentPage < Model.TotalPages)
+                    {
+                        <li>
+                            <a href="@Url.Action("Index", new { search = Model.Search, categoryId = Model.CategoryId, authorId = Model.AuthorId, page = Model.CurrentPage + 1, pageSize = Model.PageSize })"><i class="bi bi-arrow-right"></i></a>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</section>
+<!-- Blog Section End -->
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -8,7 +8,7 @@ using System.Net.Http;
 
 namespace Orders_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/OrderService/[controller]")]
     [ApiController]
     public class OrderController : ControllerBase
     {
@@ -43,11 +43,25 @@ namespace Orders_API.Controllers
         {
             var order = await Task.Run(() => _orderRepository.GetById(id, o => o.OrderDetails));
 
+<<<<<<< HEAD
             if (order == null)
+=======
+            var orderDTO = _mapperService.MapToDto<Order, OrderViewDTO>(order);
+
+            var orderDetails = orderDTO.OrderDetails.ToList();
+
+            foreach (var orderDetail in orderDetails)
+>>>>>>> Client
             {
-                return NotFound($"Order with ID {id} not found.");
+                var response = await _httpClient.GetAsync(orderDetail.BookID.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    var book = await response.Content.ReadFromJsonAsync<BookDTO>();
+                    orderDetail.Book = book;
+                }
             }
 
+<<<<<<< HEAD
             var orderDTO = _mapperService.MapToDto<Order, OrderViewDTO>(order);
 
             var orderDetails = orderDTO.OrderDetails.ToList();
@@ -62,6 +76,8 @@ namespace Orders_API.Controllers
                 }
             }
 
+=======
+>>>>>>> Client
             orderDTO.OrderDetails = orderDetails;
 
             return Ok(orderDTO);
@@ -121,7 +137,11 @@ namespace Orders_API.Controllers
         }
 
         [HttpGet("user/{userId}")]
+<<<<<<< HEAD
         public async Task<ActionResult<IEnumerable<OrderViewDTO>>> GetOrderByUser(int userId)
+=======
+        public async Task<ActionResult<IEnumerable<OrderViewDTO>>> GetOrdersByUser(int userId)
+>>>>>>> Client
         {
             var orders = await Task.Run(() => _orderRepository.GetByCondition(o => o.UserID == userId, o => o.OrderDetails));
 

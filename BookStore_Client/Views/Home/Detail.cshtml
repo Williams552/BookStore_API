@@ -1,0 +1,164 @@
+﻿@model BookStore_Client.Models.DetailViewModel
+
+@{
+    ViewData["Title"] = "Detail Page";
+}
+
+<!-- product content -->
+<section class="product pt-100 pb-5">
+    <div class="container">
+        @if (Model.Book != null)
+        {
+            <div class="row border">
+                <div class="col-md-5 ps-0">
+                    <!-- product thumbnail -->
+                    <div class="p-3 bg-light border-bottom border-end">
+                        @if (!string.IsNullOrEmpty(Model.Book.ImageURL))
+                        {
+                            <img src="@Model.Book.ImageURL" class="img-fluid product-image" width="310" height="475" alt="@Model.Book.Title" />
+                        }
+                        else
+                        {
+                            <img src="/images/shop/product-image.png" class="img-fluid product-image" width="310" height="475" alt="Book" />
+                        }
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="p-3">
+                        <div class="pb-3 border-bottom">
+                            <p class="text-primary mb-2">Book Feature</p>
+                            <h2 class="fs-2">@Model.Book.Title</h2>
+                            <div class="pt-2">
+                                <span class="fs-3 fw-bold text-primary">@Model.Book.Price?.ToString("C")</span>
+                            </div>
+                            <!-- product rating -->
+                            <div class="pt-2">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-secondary"></i>
+                                <span class="ps-3">(50 Reviews)</span>
+                            </div>
+                        </div>
+                        <!-- product description -->
+                        <div>
+                            <p class="pt-4">
+                                @Model.Book.Description
+                            </p>
+
+                            <!-- product publisher -->
+                            <ul class="list-col-2 li-unstyled responsive-grid ps-0 mb-0 check-icon-sm pt-4">
+                                <li class="mb-3">
+                                    <i class="bi bi-check-lg"></i>
+                                    <span class="ms-2">
+                                        Publisher: @(Model.Book.Supplier?.SupplierName ?? "Unknown")
+                                    </span>
+                                </li>
+                                <li class="mb-3">
+                                    <i class="bi bi-check-lg"></i>
+                                    <span class="ms-2">
+                                        Publish Date: @(Model.Book.PublicDate?.ToString("MMMM dd, yyyy") ?? "Unknown")
+                                    </span>
+                                </li>
+                                <li class="mb-3">
+                                    <i class="bi bi-check-lg"></i>
+                                    <span class="ms-2">
+                                        In Stock <span class="text-primary">(only @(Model.Book.Stock ?? 0) Copies Left)</span>
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- author -->
+                        <div class="d-flex justify-content-between align-items-center pe-lg-5 border-top border-bottom mt-4 py-3">
+                            <div class="d-flex gap-3 pe-5 border-end">
+                                @if (!string.IsNullOrEmpty(Model.Book.Author?.ImageURL))
+                                {
+                                    <img src="@Model.Book.Author.ImageURL" class="img-fluid author-avatar" alt="Author Image" style="width: 50px; height: 50px;" />
+                                }
+                                else
+                                {
+                                    <img src="/images/shop/author.png" class="img-fluid author-avatar" alt="Author Image" style="width: 50px; height: 50px;" />
+                                }
+                                <div class="d-flex flex-column my-auto">
+                                    <span class="fs-4">@(Model.Book.Author?.FullName ?? "Unknown")</span>
+                                    <span class="d-inline-block">Author & Writer</span>
+                                </div>
+                            </div>
+
+                            <div class="ps-2">
+                            </div>
+                        </div>
+
+                        <!-- add to cart buttons -->
+                        <div class="d-flex gap-4 align-items-center py-30 border-bottom">
+                            <a href="#" class="btn btn-dark">
+                                <i class="fa-solid fa-plus"></i> 02 <i class="fa-solid fa-minus"></i>
+                            </a>
+                            <a href="@Url.Action("Cart", "Order")" class="btn btn-primary">Add To Cart</a>
+                        </div>
+
+                        <!-- product categories -->
+                        <div class="pt-4">
+                            <ul class="li-unstyled ps-0 mb-0">
+                                <li><span class="fw-bold pe-2">Category</span> : @(Model.Book.Category?.CategoryName ?? "Unknown")</li>
+                                <li><span class="fw-bold pe-5">Tags</span>: Book, Novel, Poems</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <p>Book not found.</p>
+        }
+    </div>
+</section>
+<!-- product content end -->
+<!-- product section -->
+<section class="product-section py-100" id="product-id">
+    <div class="container-fluid">
+        <div class="section-title text-center">
+            <h2 class="display-4 fw-bold separator">Pick The Related Products</h2>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 gx-4 gy-4">
+            @if (Model.RelatedBooks != null && Model.RelatedBooks.Any())
+            {
+                @foreach (var book in Model.RelatedBooks)
+                {
+                    <div class="col">
+                        <div class="product-item fit-to-content bg-white py-3 px-3 rounded-2">
+                            @if (!string.IsNullOrEmpty(book.ImageURL))
+                            {
+                                <img src="@book.ImageURL" alt="@book.Title" class="img-fluid product-image" width="310" height="475" />
+                            }
+                            else
+                            {
+                                <img src="/images/home/product-img-1.png" alt="Product Image" class="img-fluid product-image" width="310" height="475" />
+                            }
+                            <p class="py-2">@(book.Category?.CategoryName ?? "Unknown")</p>
+                            <a href="@Url.Action("Detail", "Home", new { id = book.BookID })" class="text-decoration-none">
+                                <h3>@book.Title</h3>
+                            </a>
+                            <div class="d-flex justify-content-between pt-3">
+                                <h4 class="text-primary">@(book.Price?.ToString("C") ?? "N/A")</h4>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-center">No related books available.</p>
+            }
+        </div>
+
+        <div class="text-center mt-5">
+            <a class="btn btn-primary" href="@Url.Action("Index", "Home")" role="button">Find More Books</a>
+        </div>
+    </div>
+</section>
+<!--End product section -->

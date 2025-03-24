@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BookStore_Client</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/BookStore_Client.styles.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="/css/fontawesome/fontawesome.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/fontawesome/brands.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/fontawesome/solid.css" rel="stylesheet">
+    <link rel='dns-prefetch' href='http://bookpresstheme.com/' />
+    <link rel='dns-prefetch' href='http://fonts.googleapis.com/' />
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-bs-spy="scroll" data-bs-target="#navbarSupportedContent">
+
+    <header id="navbar_top" class="bg-white">
+        <div class="container">
+            <nav class="navbar navbar-expand-lg  py-3">
+                <!--site logo -->
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    <img src="/images/logo.png" alt="Site Logo" width="200">
+                </a>
+                <button class="navbar-toggler me-3 ms-auto" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <!-- nav menu -->
+                    <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Author">Author</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Detail">Detail</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Order" asp-action="Cart">Cart</a>
+                        </li>
+                    </ul>
+
+                    @if (HttpContextAccessor.HttpContext.Session.GetString("Username") != null)
+                    {
+                        <a class="nav-link text-dark" asp-controller="User" asp-action="Profile" >Welcome, @HttpContextAccessor.HttpContext.Session.GetString("Username")!</a>
+                       
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary" asp-controller="User" asp-action="Login">
+                            Login
+                        </a>
+                    }
+
+                </div>
+                <!-- .collapse -->
+                <div class="header-seperator"></div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- header banner -->
+    <section class="header-banner bookpress-parallax" id="header-banner-id">
+        <div class="container d-flex justify-content-between align-items-center text-white">
+            <div class="overlay-out">
+                <h1 class="banner-title">Unlock a World of Knowledge with Books</h1>
+            </div>
+            <img src="/images/banner-image.png" class="img-fluid" alt="Books">
+            <div class="parallax start-0 top-0 w-100 h-100"></div>
+        </div>
+    </section><!-- header banner end -->
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <div class="cart-totals mt-5">
+    </div>
+
+    <footer class="border-top footer text-muted mt-5">
+        <div class="copyright">
+            <p class="my-auto">&copy; 2022 BookPress. All Rights Reserved</p>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script src="/js/jquery-3.6.0.min.js"></script>
+    <script src="/js/jquery.waypoints.min.js"></script>
+    <script src="/js/jquery.counterup.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/scripts.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

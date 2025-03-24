@@ -1,0 +1,52 @@
+﻿@model List<BookStore_Client.Models.Category>
+
+
+@{
+    ViewData["Title"] = "Category List";
+    
+}
+
+@{
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+}
+
+<h2>Category List</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Category</a>
+</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Category ID</th>
+            <th>Category Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var category in Model)
+            {
+                <tr>
+                    <td>@category.CategoryID</td>
+                    <td>@category.CategoryName</td>
+                    <td>@category.Description</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@category.CategoryID" class="btn btn-info">View</a>
+                        <a asp-action="Edit" asp-route-id="@category.CategoryID" class="btn btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@category.CategoryID" class="btn btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3" class="text-center">No categories found.</td>
+            </tr>
+        }
+    </tbody>
+</table>

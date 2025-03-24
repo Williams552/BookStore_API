@@ -1,0 +1,68 @@
+﻿html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 60px;
+}
+
+.product-image {
+    object-fit: cover;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.product-item {
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+    .product-item h3 {
+        font-size: 1.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-item p {
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+.author-avatar {
+    object-fit: cover;
+    width: 100px !important; /* Kích thước cố định cho avatar */
+    height: 100px !important;
+    border-radius: 50%; /* Làm cho avatar hình tròn */
+    margin-top: 6px;
+}
+
+/* CSS mới cho search box */
+.search-box {
+    position: relative;
+}
+
+    .search-box input:focus + .search-icon {
+        display: none;
+    }
