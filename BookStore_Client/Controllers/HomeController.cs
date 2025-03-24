@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Text.Json;
+using BookStore_Client.Models.ViewModel;
 
 namespace BookStore_Client.Controllers
 {

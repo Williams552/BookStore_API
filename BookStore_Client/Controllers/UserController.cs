@@ -10,30 +10,97 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Google;
 using BookStore_API.Models;
 using BookStore_API.Domain.DTO;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text;
+using System.Net.Http.Headers;
 
 namespace BookStore_Client.Controllers
 {
     public class UserController : Controller
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _apiBaseUrl = "";
         private readonly BookStoreContext _context;
-
+        private readonly HttpClient _httpClient = null;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserController(IHttpContextAccessor httpContextAccessor, BookStoreContext context, IHttpClientFactory httpClientFactory)
+        public UserController(IHttpContextAccessor httpContextAccessor, BookStoreContext context, IHttpClientFactory httpClientFactory, HttpClient httpClient)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _apiBaseUrl = "http://localhost:7202/api/User";
             _context = context;
+            _httpClient = new HttpClient();
             _httpClientFactory = httpClientFactory;
+            _httpContextAccessor = httpContextAccessor;
+            var contentType = new MediaTypeWithQualityHeaderValue("application/json");
+            _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
         }
+
+        [HttpGet("login")]
         public IActionResult Login()
         {
             return View();
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromForm] User user)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(user);
+            }
+
+            try
+            {
+                var requestUrl = $"{_apiBaseUrl}/login?username={user.Username}&password={user.Password}";
+                var content = new StringContent("", System.Text.Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(requestUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    HttpContext.Session.SetString("Username", user.Username);
+                    var json = await response.Content.ReadAsStringAsync();
+                    var result = System.Text.Json.JsonSerializer.Deserialize<User>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    return RedirectToAction("Index", "Home");
+                }
+                ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng!");
+                return View(user);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Tài khoản hoặc mật khẩu không đúng!");
+                return View(user);
+            }
+        }
+
+        [HttpGet("register")]
         public IActionResult Register()
         {
             return View();
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromForm] User user)
+        {
+            var userDTO = new User
+            {
+                Username = user.Username,
+                Password = user.Password,
+                Email = user.Email,
+                Phone = user.Phone
+            };
+
+            var jsonContent = JsonConvert.SerializeObject(userDTO);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_apiBaseUrl}/register", content);
+            if (!response.IsSuccessStatusCode)
+            {
+                return View(user);
+            }
+            return RedirectToAction("Login", "User");
         }
 
         public IActionResult GoogleLogin()
