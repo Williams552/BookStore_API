@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BookStore_Client.styles.css" asp-append-version="true" />
-
     <link rel="stylesheet" href="/css/fontawesome/fontawesome.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/fontawesome/brands.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/fontawesome/solid.css" rel="stylesheet">
@@ -41,9 +40,6 @@
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Author">Author</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Detail">Detail</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Order" asp-action="Cart">Cart</a>
                         </li>
                     </ul>
@@ -51,13 +47,12 @@
                     @if (HttpContextAccessor.HttpContext.Session.GetString("Username") != null)
                     {
                         <a class="nav-link text-dark" asp-controller="User" asp-action="Profile" >Welcome, @HttpContextAccessor.HttpContext.Session.GetString("Username")!</a>
+                        <a class="btn btn-primary" asp-controller="User" asp-action="Logout">Logout</a>
                        
                     }
                     else
                     {
-                        <a class="btn btn-primary" asp-controller="User" asp-action="Login">
-                            Login
-                        </a>
+                        <a class="btn btn-primary" asp-controller="User" asp-action="Login">Login</a>
                     }
 
                 </div>
@@ -95,7 +90,6 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/jquery.waypoints.min.js"></script>
     <script src="/js/jquery.counterup.js"></script>

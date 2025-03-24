@@ -65,6 +65,7 @@ namespace BookStore_Client.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     HttpContext.Session.SetString("Username", user.Username);
+                    HttpContext.Session.SetInt32("UserID", user.UserID);
                     var json = await response.Content.ReadAsStringAsync();
                     var result = System.Text.Json.JsonSerializer.Deserialize<User>(json, new JsonSerializerOptions
                     {
@@ -625,6 +626,7 @@ namespace BookStore_Client.Controllers
             return View(updatedUser);
         }
 
+        [HttpGet("logout")]
         public IActionResult Logout()
         {
             HttpContext.Session.Clear(); // Xóa toàn bộ session
