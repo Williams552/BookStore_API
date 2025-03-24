@@ -21,15 +21,16 @@ builder.Services.AddSession(options =>
 // Th�m Authentication (Google)
 builder.Services.AddAuthentication(options =>
 {
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
 })
-
 .AddCookie()
 .AddGoogle(options =>
 {
-
-
-    options.CallbackPath = "/signin-google"; // ???ng d?n callback
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    options.CallbackPath = "/signin-google";
 });
 var app = builder.Build();
 
