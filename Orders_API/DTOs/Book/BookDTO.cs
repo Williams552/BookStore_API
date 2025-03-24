@@ -25,9 +25,6 @@ namespace Orders_API.Domain.DTO
         public DateOnly? PublicDate { get; set; }
 
         public string? ImageURL { get; set; }
-<<<<<<< HEAD
-=======
         public ICollection<OrderDetail>? OrderDetails { get; set; } // Added this line
->>>>>>> Client
     }
 }

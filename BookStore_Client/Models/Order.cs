@@ -1,12 +1,5 @@
 ﻿
-<<<<<<<< HEAD:Orders_API/Models/Order.cs
-using Orders_API.Domain.DTO;
-using Orders_API.Models;
-
-namespace Orders_API.Models;
-========
 namespace BookStore_Client.Models;
->>>>>>>> Client:BookStore_Client/Models/Order.cs
 
 public partial class Order
 {
@@ -23,4 +16,6 @@ public partial class Order
     public string? Status { get; set; }
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+
+    public virtual User? User { get; set; }
 }

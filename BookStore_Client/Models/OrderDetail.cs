@@ -1,12 +1,7 @@
-﻿using Orders_API.Domain.DTO;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-<<<<<<<< HEAD:Orders_API/Models/OrderDetail.cs
-namespace Orders_API.Models;
-========
 namespace BookStore_Client.Models;
->>>>>>>> Client:BookStore_Client/Models/OrderDetail.cs
 
 public partial class OrderDetail
 {
@@ -20,5 +15,7 @@ public partial class OrderDetail
 
     public decimal? Price { get; set; }
 
-    public virtual Order Order { get; set; }
+    public virtual Book? Book { get; set; }
+
+    public virtual Order? Order { get; set; }
 }

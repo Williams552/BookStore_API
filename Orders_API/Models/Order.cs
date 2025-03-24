@@ -1,12 +1,8 @@
 ﻿
-<<<<<<<< HEAD:Orders_API/Models/Order.cs
 using Orders_API.Domain.DTO;
 using Orders_API.Models;
 
 namespace Orders_API.Models;
-========
-namespace BookStore_Client.Models;
->>>>>>>> Client:BookStore_Client/Models/Order.cs
 
 public partial class Order
 {

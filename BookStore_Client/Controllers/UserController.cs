@@ -9,33 +9,78 @@ using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Google;
 using BookStore_API.Models;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using NuGet.Common;
+using System.Net.Http.Headers;
 using BookStore_API.Domain.DTO;
+using BookStore_Client.DTOs;
 
 namespace BookStore_Client.Controllers
 {
+    [Route("api/Auth/[controller]")]
+    [ApiController]
     public class UserController : Controller
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly BookStoreContext _context;
-
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly HttpClient _httpClient;
+        private readonly string _apiBaseUrl = "http://localhost:7202/api/User";
 
-        public UserController(IHttpContextAccessor httpContextAccessor, BookStoreContext context, IHttpClientFactory httpClientFactory)
+        public UserController(IHttpContextAccessor httpContextAccessor, BookStoreContext context, IHttpClientFactory httpClientFactory, HttpClient httpClient)
         {
             _httpContextAccessor = httpContextAccessor;
             _context = context;
             _httpClientFactory = httpClientFactory;
+            _httpClient = httpClient;
         }
+
+        [HttpGet("Login")]
         public IActionResult Login()
         {
             return View();
         }
 
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromForm] LoginDTO login)
+        {
+            try
+            {
+                // Gọi API login từ server
+                string UserUrl = "https://localhost:7202/api/User";
+                using var client = _httpClientFactory.CreateClient();
+                var response = await client.PostAsJsonAsync($"{UserUrl}/login", login);
+
+                // Xử lý response
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var tokenResponse = JsonConvert.DeserializeObject<TokenResponseDTO>(responseContent);
+                    return Ok(tokenResponse); // Trả về JSON chứa token
+                }
+
+                // Xử lý các mã lỗi
+                return response.StatusCode switch
+                {
+                    HttpStatusCode.Unauthorized => Unauthorized("Invalid credentials"),
+                    HttpStatusCode.BadRequest => BadRequest("Invalid request format"),
+                    _ => StatusCode((int)response.StatusCode, "Error occurred")
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("Register")]
         public IActionResult Register()
         {
             return View();
         }
 
+        [HttpGet("GoogleLogin")]
         public IActionResult GoogleLogin()
         {
             var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
@@ -139,7 +184,7 @@ namespace BookStore_Client.Controllers
             smtp.Send(message);
         }
 
-        [HttpGet]
+        [HttpGet("ConfirmOtp")]
         public IActionResult ConfirmOtp()
         {
             var email = HttpContext.Session.GetString("Email");
@@ -254,6 +299,7 @@ namespace BookStore_Client.Controllers
             return Json(new { success = false, message = "Failed to fetch user data from API." });
         }
 
+        [HttpGet("ForgotPassword")]
         public IActionResult ForgotPassword()
         {
             return View();
@@ -281,7 +327,7 @@ namespace BookStore_Client.Controllers
             return RedirectToAction("VerifyOtpForPasswordReset");
         }
 
-
+        [HttpGet("VerifyOtpForPasswordReset")]
         public IActionResult VerifyOtpForPasswordReset()
         {
             var email = HttpContext.Session.GetString("Email");
@@ -335,6 +381,7 @@ namespace BookStore_Client.Controllers
         }
 
         // GET: Register/ResetPassword
+        [HttpGet("ResetPassword")]
         public IActionResult ResetPassword(string email)
         {
             ViewBag.Email = email;
