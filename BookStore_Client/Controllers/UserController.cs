@@ -9,6 +9,10 @@ using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Google;
 using BookStore_API.Models;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using NuGet.Common;
+using System.Net.Http.Headers;
 using BookStore_API.Domain.DTO;
 using System.Net.Http;
 using System.Text.Json;
@@ -17,6 +21,8 @@ using System.Net.Http.Headers;
 
 namespace BookStore_Client.Controllers
 {
+    [Route("api/Auth/[controller]")]
+    [ApiController]
     public class UserController : Controller
     {
         private readonly string _apiBaseUrl = "";
@@ -206,7 +212,7 @@ namespace BookStore_Client.Controllers
             smtp.Send(message);
         }
 
-        [HttpGet]
+        [HttpGet("ConfirmOtp")]
         public IActionResult ConfirmOtp()
         {
             var email = HttpContext.Session.GetString("Email");
@@ -321,6 +327,7 @@ namespace BookStore_Client.Controllers
             return Json(new { success = false, message = "Failed to fetch user data from API." });
         }
 
+        [HttpGet("ForgotPassword")]
         public IActionResult ForgotPassword()
         {
             return View();
@@ -348,7 +355,7 @@ namespace BookStore_Client.Controllers
             return RedirectToAction("VerifyOtpForPasswordReset");
         }
 
-
+        [HttpGet("VerifyOtpForPasswordReset")]
         public IActionResult VerifyOtpForPasswordReset()
         {
             var email = HttpContext.Session.GetString("Email");
@@ -402,6 +409,7 @@ namespace BookStore_Client.Controllers
         }
 
         // GET: Register/ResetPassword
+        [HttpGet("ResetPassword")]
         public IActionResult ResetPassword(string email)
         {
             ViewBag.Email = email;
