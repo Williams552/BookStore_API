@@ -15,7 +15,6 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using CodeMegaVNPay.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,7 +108,6 @@ builder.Services.AddScoped<IMapperService, MapperService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IVnPayService, VnPayService>();
 
 var app = builder.Build();
 
