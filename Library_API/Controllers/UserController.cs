@@ -5,6 +5,9 @@ using BookStore_API.Repository;
 using BookStore_API.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.Net.Mail;
+using System.Net;
+using BookStore_API.DTOs.User;
 
 namespace BookStore_API.Controllers
 {
@@ -45,7 +48,6 @@ namespace BookStore_API.Controllers
             return Ok(new { Token = token });
         }
 
-        // GET: api/user
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
@@ -57,7 +59,6 @@ namespace BookStore_API.Controllers
             return Ok(users);
         }
 
-        // GET: api/user/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUserById(int id)
         {
@@ -69,21 +70,6 @@ namespace BookStore_API.Controllers
             return Ok(user);
         }
 
-        // POST: api/user
-        //[HttpPost]
-        //public async Task<ActionResult<User>> AddUser(UserDTO userDTO)
-        //{
-        //    var user = _mapperService.MapToDto<UserDTO, User>(userDTO);
-        //    if (user == null)
-        //    {
-        //        return BadRequest("User cannot be null.");
-        //    }
-
-        //    await Task.Run(() => _userRepository.Add(user));
-        //    return CreatedAtAction(nameof(GetUserById), new { id = user.UserID }, user);
-        //}
-
-        // PUT: api/user/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UserDTO userDTO)
         {
@@ -99,33 +85,16 @@ namespace BookStore_API.Controllers
             }
 
             var user = _mapperService.MapToDto<UserDTO, User>(userDTO);
-
-            // Giữ lại giá trị Username nếu UserDTO không cung cấp
-            if (string.IsNullOrEmpty(user.Username))
-            {
-                user.Username = existingUser.Username;
-            }
-
-            // Đảm bảo ImageUrl được cập nhật
-            if (string.IsNullOrEmpty(user.ImageUrl))
-            {
-                user.ImageUrl = existingUser.ImageUrl; // Giữ giá trị cũ nếu không có giá trị mới
-            }
-
-
-
-
-            // Giữ lại các trường không được phép thay đổi
-            user.CreateAt = existingUser.CreateAt; // Giữ nguyên CreateAt
-            user.IsDelete = existingUser.IsDelete; // Giữ nguyên IsDelete
-            user.Role = existingUser.Role;         // Giữ nguyên Role
-
+            if (string.IsNullOrEmpty(user.Username)) user.Username = existingUser.Username;
+            if (string.IsNullOrEmpty(user.ImageUrl)) user.ImageUrl = existingUser.ImageUrl;
+            user.CreateAt = existingUser.CreateAt;
+            user.IsDelete = existingUser.IsDelete;
+            user.Role = existingUser.Role;
 
             await Task.Run(() => _userRepository.Update(user));
             return NoContent();
         }
 
-        // DELETE: api/user/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -148,6 +117,156 @@ namespace BookStore_API.Controllers
                 return NotFound($"User with email {email} not found.");
             }
             return Ok(user);
+        }
+
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Otp))
+            {
+                return BadRequest(new { Message = "Email và OTP là bắt buộc." });
+            }
+
+            var user = await _userRepository.GetFirstByCondition(u => u.Email == request.Email);
+            if (user == null)
+            {
+                return NotFound(new { Message = "Email không tồn tại trong hệ thống." });
+            }
+
+            if (user.OTP == null || user.OTP.ToString() != request.Otp)
+            {
+                return BadRequest(new { Message = "OTP không hợp lệ." });
+            }
+
+            if (user.TimeOtp == null || (DateTime.UtcNow - user.TimeOtp.Value).TotalMinutes > 5)
+            {
+                return BadRequest(new { Message = "OTP đã hết hạn." });
+            }
+
+            user.OTP = null;
+            user.TimeOtp = null;
+            await _userRepository.Update(user);
+
+            return Ok(new { Message = "Xác thực OTP thành công. Vui lòng đổi mật khẩu." });
+        }
+
+        [HttpPost("forgot-password")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Email))
+            {
+                return BadRequest(new { Message = "Email là bắt buộc." });
+            }
+
+            var user = await _userRepository.GetFirstByCondition(u => u.Email == request.Email);
+            if (user == null)
+            {
+                return NotFound(new { Message = "Email không tồn tại trong hệ thống." });
+            }
+
+            try
+            {
+                int otp = GenerateOTP();
+                await SendOTPEmailAsync(user.Email, otp.ToString());
+                user.OTP = otp;
+                user.TimeOtp = DateTime.UtcNow;
+                await _userRepository.Update(user);
+                return Ok(new { Message = "OTP đã được gửi đến email của bạn." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = $"Lỗi khi gửi OTP: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("resend-otp")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> ResendOtp([FromBody] ForgotPasswordRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Email))
+            {
+                return BadRequest(new { Message = "Email là bắt buộc." });
+            }
+
+            var user = await _userRepository.GetFirstByCondition(u => u.Email == request.Email);
+            if (user == null)
+            {
+                return NotFound(new { Message = "Email không tồn tại trong hệ thống." });
+            }
+
+            try
+            {
+                int otp = GenerateOTP();
+                await SendOTPEmailAsync(user.Email, otp.ToString());
+                user.OTP = otp;
+                user.TimeOtp = DateTime.UtcNow;
+                await _userRepository.Update(user);
+                return Ok(new { Message = "OTP mới đã được gửi đến email của bạn." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = $"Lỗi khi gửi OTP: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("reset-password")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.NewPassword))
+            {
+                return BadRequest(new { Message = "Email và mật khẩu mới là bắt buộc." });
+            }
+
+            var user = await _userRepository.GetFirstByCondition(u => u.Email == request.Email);
+            if (user == null)
+            {
+                return NotFound(new { Message = "Email không tồn tại trong hệ thống." });
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _userRepository.Update(user);
+
+            return Ok(new { Message = "Đặt lại mật khẩu thành công." });
+        }
+
+        // Helper methods
+        private int GenerateOTP()
+        {
+            Random random = new Random();
+            return random.Next(100000, 999999); // OTP 6 chữ số
+        }
+
+        private async Task SendOTPEmailAsync(string email, string otp)
+        {
+            var fromAddress = new MailAddress("phamngocquan812@gmail.com", "Cursus");
+            var toAddress = new MailAddress(email);
+            const string fromPassword = "ljzi zden qcwr mcwt"; // App Password nếu dùng Gmail 2FA
+            const string subject = "Your OTP for Password Reset";
+            string body = $"Dear {email},\n\nYour OTP code is {otp}. It is valid for 5 minutes.\n\nBest regards,\nCursus";
+
+            var smtp = new SmtpClient
+            {
+                Host = "smtp.gmail.com",
+                Port = 587,
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(fromAddress.Address, fromPassword)
+            };
+
+            using var message = new MailMessage(fromAddress, toAddress)
+            {
+                Subject = subject,
+                Body = body
+            };
+            await smtp.SendMailAsync(message);
         }
     }
 }

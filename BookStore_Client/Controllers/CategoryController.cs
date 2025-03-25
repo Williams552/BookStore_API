@@ -58,7 +58,7 @@ namespace BookStore_Client.Controllers
 
         // POST: Category/Create
         [HttpPost]
-        public async Task<IActionResult> Create(CategoryDTO categoryDTO)
+        public async Task<IActionResult> Create(BookStore_API.Domain.DTO.CategoryDTO categoryDTO)
         {
             var jsonContent = JsonConvert.SerializeObject(categoryDTO);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -82,7 +82,7 @@ namespace BookStore_Client.Controllers
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            var categoryDTO = JsonConvert.DeserializeObject<CategoryDTO>(jsonResponse);
+            var categoryDTO = JsonConvert.DeserializeObject<BookStore_API.Domain.DTO.CategoryDTO>(jsonResponse);
 
             // Chuyển đổi từ CategoryDTO sang Category để truyền vào View
             var category = new Category
@@ -104,7 +104,7 @@ namespace BookStore_Client.Controllers
                 return BadRequest("Category ID mismatch.");
             }
 
-            var categoryDTO = new CategoryDTO
+            var categoryDTO = new BookStore_API.Domain.DTO.CategoryDTO
             {
                 CategoryID = category.CategoryID,
                 CategoryName = category.CategoryName,
@@ -134,7 +134,7 @@ namespace BookStore_Client.Controllers
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            var categoryDTO = JsonConvert.DeserializeObject<CategoryDTO>(jsonResponse);
+            var categoryDTO = JsonConvert.DeserializeObject<BookStore_API.Domain.DTO.CategoryDTO>(jsonResponse);
 
             // Chuyển đổi từ CategoryDTO sang Category để truyền vào View
             var category = new Category

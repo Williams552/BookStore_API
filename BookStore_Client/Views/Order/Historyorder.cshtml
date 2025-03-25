@@ -1,0 +1,77 @@
+﻿@model List<BookStore_Client.Models.ViewModel.OrderViewModel>
+@{
+    Layout = "~/Views/Shared/_layoutprofile.cshtml";
+    ViewData["Title"] = "User Profile";
+}
+<h2>Order History</h2>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+@if (Model.Any())
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Order Date</th>
+                <th>Total Amount</th>
+                <th>Payment Method</th>
+                <th>Status</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.OrderID</td>
+                    <td>@(order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy") : "N/A")</td>
+                    <td>@(order.TotalAmount.HasValue ? order.TotalAmount.Value.ToString("C") : "N/A")</td>
+                    <td>@order.PaymentMethod</td>
+                    <td>@order.Status</td>
+                    <td>
+                        @if (order.OrderDetails.Any())
+                        {
+                            <ul>
+                                @foreach (var detail in order.OrderDetails)
+                                {
+                                    <li>
+                                        Book: @(detail.Book?.Title ?? "Unknown"),
+                                        Quantity: @detail.Quantity,
+                                        <img src="@(detail.Book?.ImageURL ?? "/uploads/default.jpg")" alt="Book Image" style="width: 50px; height: 50px;" />
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>No details available.</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No orders found.</p>
+}
+
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .table ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    .table img {
+        margin-left: 10px;
+    }
+</style>

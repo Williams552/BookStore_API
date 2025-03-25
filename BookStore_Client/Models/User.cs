@@ -43,7 +43,7 @@ public class password
 {
     [StringLength(50, ErrorMessage = "Username cannot be longer than 50 characters.")]
     public string? Username { get; set; }
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
     [MinLength(5, ErrorMessage = "Password must be at least 5 characters long.")]
     [Required(ErrorMessage = "Password is required.")]

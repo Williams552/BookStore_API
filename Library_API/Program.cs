@@ -17,7 +17,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Giữ nguyên tên property (Email thay vì email)
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true; // Không phân biệt hoa thường
+    });
 builder.Services.AddAuthorization();
 
 // Add services to the container.

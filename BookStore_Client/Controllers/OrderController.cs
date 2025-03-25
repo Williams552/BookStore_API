@@ -135,5 +135,36 @@ namespace BookStore_Client.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        public async Task<IActionResult> HistoryOrder()
+        {
+            // Lấy userId từ session (hoặc token, tùy cách bạn lưu thông tin user)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+
+
+
+
+            var response = await _httpClient.GetAsync($"user/{userId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var orders = JsonConvert.DeserializeObject<List<OrderViewModel>>(content);
+                return View(orders);
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            else
+            {
+                ViewBag.ErrorMessage = "Unable to load order history.";
+                return View(new List<OrderViewModel>());
+            }
+        }
     }
 }
