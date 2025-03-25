@@ -8,7 +8,7 @@ using System.Net.Mail;
 using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Google;
-using BookStore_API.Models;
+using BookStore_Client.Models;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using NuGet.Common;
@@ -139,7 +139,7 @@ namespace BookStore_Client.Controllers
                 if (user == null)
                 {
                     // Tạo tài khoản mới nếu chưa có trong DB
-                    user = new User
+                    user = new BookStore_API.Models.User
                     {
                         Username = $"{firstName} {lastName}".Trim(),
                         Email = emailClaim,
