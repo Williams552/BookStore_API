@@ -11,8 +11,8 @@ namespace BookStore_Client.Controllers
     public class OrderController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiUrl = "https://localhost:7218/api/OrderService/order";
-        private readonly string _userApiUrl = "https://localhost:7202/api/user"; // Giả sử endpoint API cho User
+        private readonly string _apiUrl = "http://localhost:7218/api/OrderService/order";
+        private readonly string _userApiUrl = "http://localhost:7202/api/user"; // Giả sử endpoint API cho User
         private readonly ILogger<OrderController> _logger;
 
         public OrderController(HttpClient httpClient, ILogger<OrderController> logger)

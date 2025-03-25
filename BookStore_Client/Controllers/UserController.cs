@@ -33,11 +33,10 @@ namespace BookStore_Client.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserController(IHttpContextAccessor httpContextAccessor,
-            BookStoreContext context, IHttpClientFactory httpClientFactory,
+        public UserController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory,
             HttpClient httpClient)
         {
-            _apiBaseUrl = "https://localhost:7202/api/User";
+            _apiBaseUrl = "http://localhost:7202/api/User";
             //_context = context;
             _httpClient = new HttpClient();
             _httpClientFactory = httpClientFactory;

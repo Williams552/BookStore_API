@@ -15,7 +15,7 @@ namespace BookStore_Client.Controllers
         {
             _logger = logger;
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri("https://localhost:7202/");
+            _httpClient.BaseAddress = new Uri("http://localhost:7202/");
         }
 
         public async Task<IActionResult> Index(string search, int? categoryId, int? authorId, int page = 1, int pageSize = 9)
