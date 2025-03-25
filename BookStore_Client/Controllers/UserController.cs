@@ -18,6 +18,8 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text;
 using System.Net.Http.Headers;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Http;
 
 namespace BookStore_Client.Controllers
 {
@@ -31,7 +33,9 @@ namespace BookStore_Client.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserController(IHttpContextAccessor httpContextAccessor, BookStoreContext context, IHttpClientFactory httpClientFactory, HttpClient httpClient)
+        public UserController(IHttpContextAccessor httpContextAccessor, 
+            BookStoreContext context, IHttpClientFactory httpClientFactory, 
+            HttpClient httpClient)
         {
             _apiBaseUrl = "http://localhost:7202/api/User";
             _context = context;
@@ -40,6 +44,13 @@ namespace BookStore_Client.Controllers
             _httpContextAccessor = httpContextAccessor;
             var contentType = new MediaTypeWithQualityHeaderValue("application/json");
             _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
+        }
+
+        public static Dictionary<string, string> DecodeJwtToken(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            return jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
         }
 
         [HttpGet("login")]
@@ -64,13 +75,16 @@ namespace BookStore_Client.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    HttpContext.Session.SetString("Username", user.Username);
-                    HttpContext.Session.SetInt32("UserID", user.UserID);
                     var json = await response.Content.ReadAsStringAsync();
-                    var result = System.Text.Json.JsonSerializer.Deserialize<User>(json, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
+                    var jsonObject = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(json);
+                    string token = jsonObject.GetProperty("token").GetString();
+                    HttpContext.Session.SetString("JWTToken", token);
+                    var userInfo = DecodeJwtToken(token);
+                    int userId = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.NameIdentifier));
+                    int role = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.Role));
+                    HttpContext.Session.SetString("Username", user.Username);
+                    HttpContext.Session.SetInt32("UserId", userId);
+                    HttpContext.Session.SetInt32("Role", role);
                     return RedirectToAction("Index", "Home");
                 }
                 ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng!");
