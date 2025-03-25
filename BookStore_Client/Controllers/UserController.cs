@@ -74,12 +74,12 @@ namespace BookStore_Client.Controllers
                     return RedirectToAction("Index", "Home");
                 }
                 ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng!");
-                return View(user);
+                return RedirectToAction("Login", "User");
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, $"Tài khoản hoặc mật khẩu không đúng!");
-                return View(user);
+                return RedirectToAction("Login", "User");
             }
         }
 
