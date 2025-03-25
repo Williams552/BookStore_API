@@ -9,10 +9,11 @@ namespace BookStore_Client.Controllers
     public class AuthorController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiBaseUrl = "https://localhost:7202/api/author/"; // Thay bằng API của bạn
+        private readonly string _apiBaseUrl = "";
 
         public AuthorController(HttpClient httpClient)
         {
+            _apiBaseUrl = "https://localhost:7202/api/author";
             _httpClient = httpClient;
         }
 
@@ -33,7 +34,7 @@ namespace BookStore_Client.Controllers
         // GET: Author/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var response = await _httpClient.GetAsync($"https://localhost:7202/api/author/{id}");
+            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/{id}");
             if (!response.IsSuccessStatusCode)
             {
                 return NotFound();
@@ -77,7 +78,7 @@ namespace BookStore_Client.Controllers
         // GET: Author/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var response = await _httpClient.GetAsync($"https://localhost:7202/api/author/{id}");
+            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/{id}");
             if (!response.IsSuccessStatusCode)
             {
                 return NotFound();
@@ -117,7 +118,7 @@ namespace BookStore_Client.Controllers
             var jsonContent = JsonConvert.SerializeObject(authorDTO);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync($"https://localhost:7202/api/author/{id}", content);
+            var response = await _httpClient.PutAsync($"{_apiBaseUrl}/{id}", content);
             if (!response.IsSuccessStatusCode)
             {
                 return View(author);
@@ -125,12 +126,12 @@ namespace BookStore_Client.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-    
 
-    // GET: Author/Delete/5
-    public async Task<IActionResult> Delete(int id)
+
+        // GET: Author/Delete/5
+        public async Task<IActionResult> Delete(int id)
         {
-            var response = await _httpClient.GetAsync($"https://localhost:7202/api/author/{id}");
+            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/{id}");
             if (!response.IsSuccessStatusCode)
             {
                 return NotFound();
@@ -146,7 +147,7 @@ namespace BookStore_Client.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var response = await _httpClient.DeleteAsync($"https://localhost:7202/api/author/{id}");
+            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/{id}");
 
             if (response.IsSuccessStatusCode)
             {

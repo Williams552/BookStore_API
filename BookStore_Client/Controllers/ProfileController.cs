@@ -7,9 +7,11 @@ namespace BookStore_Client.Controllers
     public class ProfileController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _apiBaseUrl = "";
 
         public ProfileController(IHttpClientFactory httpClientFactory)
         {
+            _apiBaseUrl = "https://localhost:7202/api/User";
             _httpClientFactory = httpClientFactory;
         }
 
@@ -18,11 +20,10 @@ namespace BookStore_Client.Controllers
         {
             var client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri("https://localhost:7202/api/User/"); // Thay bằng URL API thực tế
-
             try
             {
                 int userId = 1; // UserID cố định
-                var response = await client.GetAsync($"https://localhost:7202/api/User/{userId}");
+                var response = await client.GetAsync($"{_apiBaseUrl}/{userId}");
 
                 if (response.IsSuccessStatusCode)
                 {

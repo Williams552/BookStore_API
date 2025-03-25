@@ -35,9 +35,9 @@ namespace BookStore_API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDTO login)
+        public async Task<IActionResult> Login(string username, string password)
         {
-            var token = await _userService.Login(login.Username, login.Password);
+            var token = await _userService.Login(username, password);
             if (token == null)
             {
                 return Unauthorized("Invalid username or password");

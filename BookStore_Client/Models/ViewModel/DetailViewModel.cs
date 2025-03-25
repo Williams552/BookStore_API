@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BookStore_Client.Models
+namespace BookStore_Client.Models.ViewModel
 {
     public class DetailViewModel
     {
