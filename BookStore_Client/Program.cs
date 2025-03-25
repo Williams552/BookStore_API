@@ -1,11 +1,10 @@
-using BookStore_API.DataAccess;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<BookStoreContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Services.AddDbContext<BookStoreContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
@@ -28,8 +27,9 @@ builder.Services.AddAuthentication(options =>
 .AddCookie()
 .AddGoogle(options =>
 {
-
-    options.CallbackPath = "/signin-google";
+    options.ClientId = builder.Configuration.GetValue<string>("Authentication:Google:ClientId");
+    options.ClientSecret = builder.Configuration.GetValue<string>("Authentication:Google:ClientSecret");
+    options.CallbackPath = "/signin-google"; // ???ng d?n callback
 });
 var app = builder.Build();
 
