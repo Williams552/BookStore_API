@@ -28,7 +28,6 @@ builder.Services.AddAuthentication(options =>
 .AddCookie()
 .AddGoogle(options =>
 {
-
     options.CallbackPath = "/signin-google";
 });
 var app = builder.Build();

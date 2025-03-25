@@ -45,4 +45,8 @@
 	  <ProjectReference Include="..\Library_API\BookStore_API.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Views\Order\" />
+	</ItemGroup>
+
 </Project>
