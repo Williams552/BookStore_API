@@ -1,4 +1,4 @@
-﻿using BookStore_API.Domain.DTO;
+﻿using BookStore_Client.Domain.DTO;
 using BookStore_Client.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
