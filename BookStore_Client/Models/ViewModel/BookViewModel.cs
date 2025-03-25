@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BookStore_Client.Models.ViewModels
 {
@@ -7,7 +8,12 @@ namespace BookStore_Client.Models.ViewModels
         public int BookID { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        [Required(ErrorMessage = "Giá không được để trống.")]
+        [Range(0, double.MaxValue, ErrorMessage = "Giá không được là số âm.")]
         public decimal Price { get; set; }
+
+        [Required(ErrorMessage = "Số lượng tồn kho không được để trống.")]
+        [Range(0, int.MaxValue, ErrorMessage = "Số lượng tồn kho không được là số âm.")]
         public int Stock { get; set; }
         public DateTime? PublicDate { get; set; }
         public string ImageURL { get; set; }
