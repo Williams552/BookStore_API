@@ -69,10 +69,11 @@
                 <!-- Popular Category using Category Model -->
                 <div class="blog-category">
                     <h3 class="py-3 border-bottom">Popular Category</h3>
-                    <ul class="mt-3 ps-0">
-                        @foreach (var category in Model.Categories)
+                    <ul class="mt-3 ps-0 category-list">
+                        @for (int i = 0; i < Model.Categories.Count; i++)
                         {
-                            <li class="list-unstyled">
+                            var category = Model.Categories[i];
+                            <li class="list-unstyled category-item @(i >= 5 ? "hidden" : "")">
                                 @if (Model.CategoryId == category.CategoryID)
                                 {
                                     // Nếu Category đang active, nhấp vào sẽ bỏ lọc (categoryId = null)
@@ -90,15 +91,23 @@
                             </li>
                         }
                     </ul>
+                    @if (Model.Categories.Count > 5)
+                    {
+                        <div class="mt-2">
+                            <a href="#" class="show-all-categories ms-1 text-primary">Show All</a>
+                            <a href="#" class="hide-categories ms-1 text-primary" style="display: none;">Hide</a>
+                        </div>
+                    }
                 </div>
 
                 <!-- Popular Authors -->
                 <div class="blog-category">
                     <h3 class="py-3 border-bottom">Popular Authors</h3>
-                    <ul class="mt-3 ps-0">
-                        @foreach (var author in Model.Authors)
+                    <ul class="mt-3 ps-0 author-list">
+                        @for (int i = 0; i < Model.Authors.Count; i++)
                         {
-                            <li class="list-unstyled">
+                            var author = Model.Authors[i];
+                            <li class="list-unstyled author-item @(i >= 5 ? "hidden" : "")">
                                 @if (Model.AuthorId == author.AuthorID)
                                 {
                                     // Nếu Author đang active, nhấp vào sẽ bỏ lọc (authorId = null)
@@ -116,6 +125,13 @@
                             </li>
                         }
                     </ul>
+                    @if (Model.Authors.Count > 5)
+                    {
+                        <div class="mt-2">
+                            <a href="#" class="show-all-authors ms-1 text-primary">Show All</a>
+                            <a href="#" class="hide-authors ms-1 text-primary" style="display: none;">Hide</a>
+                        </div>
+                    }
                 </div>
 
                 <!-- Recent Posts -->
@@ -222,4 +238,47 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        // Logic cho Popular Category
+        document.querySelector('.show-all-categories')?.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelectorAll('.category-item.hidden').forEach(item => {
+                item.classList.remove('hidden');
+            });
+            this.style.display = 'none';
+            document.querySelector('.hide-categories').style.display = 'inline';
+        });
+
+        document.querySelector('.hide-categories')?.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelectorAll('.category-item').forEach((item, index) => {
+                if (index >= 5) {
+                    item.classList.add('hidden');
+                }
+            });
+            this.style.display = 'none';
+            document.querySelector('.show-all-categories').style.display = 'inline';
+        });
+
+        // Logic cho Popular Authors
+        document.querySelector('.show-all-authors')?.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelectorAll('.author-item.hidden').forEach(item => {
+                item.classList.remove('hidden');
+            });
+            this.style.display = 'none';
+            document.querySelector('.hide-authors').style.display = 'inline';
+        });
+
+        document.querySelector('.hide-authors')?.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelectorAll('.author-item').forEach((item, index) => {
+                if (index >= 5) {
+                    item.classList.add('hidden');
+                }
+            });
+            this.style.display = 'none';
+            document.querySelector('.show-all-authors').style.display = 'inline';
+        });
+    </script>
 }

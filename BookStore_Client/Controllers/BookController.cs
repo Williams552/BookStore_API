@@ -1,4 +1,4 @@
-﻿using BookStore_API.Domain.DTO;
+﻿
 using BookStore_Client.Models;
 using BookStore_Client.Models.ViewModels;
 using Microsoft.AspNet.SignalR.Json;
@@ -91,6 +91,7 @@ namespace BookStore_Client.Controllers
 
         // POST: Book/Create
         // POST: Book/Create
+        // POST: Book/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookViewModel bookViewModel)
@@ -121,8 +122,8 @@ namespace BookStore_Client.Controllers
                 Stock = bookViewModel.Stock,
                 PublicDate = bookViewModel.PublicDate.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.PublicDate.Value) : null,
                 ImageURL = bookViewModel.ImageURL,
-                UpdateBy = bookViewModel.UpdateBy,
-                UpdateAt = bookViewModel.UpdateAt.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.UpdateAt.Value) : null,
+                UpdateBy = 0, // Giá trị mặc định là 0
+                UpdateAt = DateOnly.FromDateTime(DateTime.Now), // Lấy thời gian hiện tại
                 AuthorID = bookViewModel.AuthorID,
                 CategoryID = bookViewModel.CategoryID,
                 SupplierID = bookViewModel.SupplierID
@@ -213,8 +214,8 @@ namespace BookStore_Client.Controllers
                 AuthorID = bookViewModel.AuthorID,
                 CategoryID = bookViewModel.CategoryID,
                 SupplierID = bookViewModel.SupplierID,
-                UpdateBy = bookViewModel.UpdateBy, // Thêm dòng này
-                UpdateAt = bookViewModel.UpdateAt.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.UpdateAt.Value) : null // Thêm dòng này
+                UpdateBy = bookViewModel.UpdateBy, // Giữ nguyên giá trị hiện tại từ hidden field
+                UpdateAt = DateOnly.FromDateTime(DateTime.Now) // Lấy thời gian hiện tại
             };
 
             var json = JsonConvert.SerializeObject(book);
