@@ -20,8 +20,8 @@ namespace BookStore_Client.Controllers
 
         public BookController(HttpClient httpClient)
         {
-            _apiUrl = "https://localhost:7202/api/book";
-            _apiUrlBase = "https://localhost:7202/api";
+            _apiUrl = "http://localhost:7202/api/book";
+            _apiUrlBase = "http://localhost:7202/api";
             _httpClient = httpClient;
         }
 

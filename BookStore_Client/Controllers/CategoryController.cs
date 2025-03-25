@@ -17,7 +17,7 @@ namespace BookStore_Client.Controllers
 
         public CategoryController()
         {
-            _apiBaseUrl = "https://localhost:7202/api/Category";
+            _apiBaseUrl = "http://localhost:7202/api/Category";
             _httpClient = new HttpClient();
         }
 

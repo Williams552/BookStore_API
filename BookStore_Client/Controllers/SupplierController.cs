@@ -11,7 +11,7 @@ namespace BookStore_Client.Controllers
     public class SupplierController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiUrl = "https://localhost:7202/api/Supplier";
+        private readonly string _apiUrl = "http://localhost:7202/api/Supplier";
 
         public SupplierController(HttpClient httpClient)
         {
