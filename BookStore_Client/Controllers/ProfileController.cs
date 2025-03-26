@@ -1,56 +1,207 @@
-﻿using BookStore_Client.Models;
-using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using BookStore_Client.Models;
+using BookStore_API.Domain.DTO;
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
+using BookStore_Client.Domain.DTO;
 
 namespace BookStore_Client.Controllers
 {
-    public class ProfileController : Controller
+    [Route("Profile")] // Đơn giản hóa route, bỏ "api/Profile/[controller]"
+    public class ProfileController : Controller // Không dùng [ApiController] để hỗ trợ trả về View
     {
+        private readonly string _apiBaseUrl = "https://localhost:7202/api/User";
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly string _apiBaseUrl = "";
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly HttpClient _httpClient;
 
-        public ProfileController(IHttpClientFactory httpClientFactory)
+        public ProfileController(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, HttpClient httpClient)
         {
-            _apiBaseUrl = "http://localhost:7202/api/User";
             _httpClientFactory = httpClientFactory;
+            _httpContextAccessor = httpContextAccessor;
+            _httpClient = httpClient;
+            var contentType = new MediaTypeWithQualityHeaderValue("application/json");
+            _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
+        [HttpGet("profile")]
+        public async Task<IActionResult> Profile()
         {
-            var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri("http://localhost:7202/api/User/"); // Thay bằng URL API thực tế
-            try
+            var userDataJson = HttpContext.Session.GetString("customerInfo");
+            if (string.IsNullOrEmpty(userDataJson) && string.IsNullOrEmpty(HttpContext.Session.GetString("JWTToken")))
             {
-                int userId = 1; // UserID cố định
-                var response = await client.GetAsync($"{_apiBaseUrl}/{userId}");
+                return RedirectToAction("Login", "User");
+            }
 
-                if (response.IsSuccessStatusCode)
+            User user;
+            if (!string.IsNullOrEmpty(userDataJson))
+            {
+                user = JsonConvert.DeserializeObject<User>(userDataJson);
+            }
+            else
+            {
+                var token = HttpContext.Session.GetString("JWTToken");
+                var userInfo = UserController.DecodeJwtToken(token); // Gọi phương thức tĩnh từ UserController
+                user = new User
                 {
-                    var jsonString = await response.Content.ReadAsStringAsync();
-                    var user = JsonSerializer.Deserialize<User>(jsonString, new JsonSerializerOptions
+                    UserID = Convert.ToInt32(userInfo.GetValueOrDefault(System.Security.Claims.ClaimTypes.NameIdentifier)),
+                    Username = HttpContext.Session.GetString("Username"),
+                    Email = Convert.ToString(userInfo.GetValueOrDefault(System.Security.Claims.ClaimTypes.Email)),
+                    Role = HttpContext.Session.GetInt32("Role").GetValueOrDefault()
+                };
+            }
+
+            var httpClient = _httpClientFactory.CreateClient();
+            var apiUrl = $"{_apiBaseUrl}/by-email/{user.Email}";
+            var response = await httpClient.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var updatedUser = JsonConvert.DeserializeObject<User>(jsonResponse);
+                HttpContext.Session.SetString("customerInfo", JsonConvert.SerializeObject(updatedUser));
+                return View(updatedUser);
+            }
+
+            return View(user);
+        }
+
+        [HttpGet("edit-profile/{userId}")]
+        public async Task<IActionResult> EditProfile(int userId)
+        {
+            var userDataJson = HttpContext.Session.GetString("customerInfo");
+            if (string.IsNullOrEmpty(userDataJson))
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            var user = JsonConvert.DeserializeObject<User>(userDataJson);
+
+            if (user.UserID != userId)
+            {
+                return Unauthorized("You can only edit your own profile.");
+            }
+
+            var httpClient = _httpClientFactory.CreateClient();
+            var apiUrl = $"{_apiBaseUrl}/{userId}";
+            var response = await httpClient.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var updatedUser = JsonConvert.DeserializeObject<User>(jsonResponse);
+                return View(updatedUser);
+            }
+
+            return View(user);
+        }
+
+        [HttpPost("edit-profile")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(User updatedUser, IFormFile ImageFile)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                foreach (var error in errors)
+                {
+                    Console.WriteLine($"Validation Error: {error}");
+                }
+                return View(updatedUser);
+            }
+
+            var userDataJson = HttpContext.Session.GetString("customerInfo");
+            if (string.IsNullOrEmpty(userDataJson))
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            var currentUser = JsonConvert.DeserializeObject<User>(userDataJson);
+            if (currentUser.UserID != updatedUser.UserID)
+            {
+                return Unauthorized("You can only edit your own profile.");
+            }
+
+            string imageUrl = updatedUser.ImageUrl ?? string.Empty;
+            if (ImageFile != null && ImageFile.Length > 0)
+            {
+                if (ImageFile.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("ImageFile", "File size must be less than 5MB.");
+                    return View(updatedUser);
+                }
+
+                if (!ImageFile.ContentType.StartsWith("image/"))
+                {
+                    ModelState.AddModelError("ImageFile", "Please upload a valid image file.");
+                    return View(updatedUser);
+                }
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                if (!string.IsNullOrEmpty(updatedUser.ImageUrl))
+                {
+                    var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", updatedUser.ImageUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldFilePath))
                     {
-                        PropertyNameCaseInsensitive = true
-                    });
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                }
 
-                    return View(user);
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    ViewBag.ErrorMessage = $"User with ID {userId} not found.";
-                    return View();
+                    await ImageFile.CopyToAsync(stream);
                 }
-                else
-                {
-                    ViewBag.ErrorMessage = "Unable to fetch profile data.";
-                    return View();
-                }
+
+                imageUrl = $"/uploads/{fileName}";
             }
-            catch (Exception ex)
+
+            var httpClient = _httpClientFactory.CreateClient();
+            var apiUrl = $"{_apiBaseUrl}/{currentUser.UserID}";
+            var userDTO = new UserDTO
             {
-                ViewBag.ErrorMessage = $"An error occurred: {ex.Message}";
-                return View();
+                UserID = currentUser.UserID,
+                Username = updatedUser.Username,
+                FullName = updatedUser.FullName,
+                Email = updatedUser.Email,
+                Phone = updatedUser.Phone,
+                Address = updatedUser.Address,
+                Gender = updatedUser.Gender,
+                ImageUrl = imageUrl
+            };
+
+            Console.WriteLine($"Sending to API: {JsonConvert.SerializeObject(userDTO)}");
+
+            var response = await httpClient.PutAsJsonAsync(apiUrl, userDTO);
+
+            if (response.IsSuccessStatusCode)
+            {
+                updatedUser.ImageUrl = imageUrl;
+                updatedUser.CreateAt = currentUser.CreateAt;
+                updatedUser.IsDelete = currentUser.IsDelete;
+                updatedUser.Role = currentUser.Role;
+                var updatedUserJson = JsonConvert.SerializeObject(updatedUser);
+                HttpContext.Session.SetString("customerInfo", updatedUserJson);
+                HttpContext.Session.SetString("Username", updatedUser.Username ?? updatedUser.FullName);
+
+                return RedirectToAction("Profile");
             }
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            ModelState.AddModelError("", $"Failed to update profile: {errorContent}");
+            Console.WriteLine($"API Error: {errorContent}");
+            return View(updatedUser);
         }
     }
 }
