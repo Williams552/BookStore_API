@@ -31,11 +31,11 @@
                         <table class="table table-hover table-striped align-middle">
                             <thead class="table-dark">
                                 <tr>
-                                    @* <th scope="col">Order ID</th> *@
-                                    <th scope="col">User Name</th> <!-- Thay User ID bằng User Name -->
+                                    <th scope="col">User Name</th>
                                     <th scope="col">Order Date</th>
                                     <th scope="col">Total Amount</th>
                                     <th scope="col">Status</th>
+                                    <th scope="col">Order Details</th> <!-- Thêm cột Details -->
                                     <th scope="col" class="text-center">Actions</th>
                                 </tr>
                             </thead>
@@ -45,11 +45,28 @@
                                     @foreach (var order in Model)
                                     {
                                         <tr>
-                                            @* <td>@order.OrderID</td> *@
-                                            <td>@order.UserFullName</td> <!-- Hiển thị FullName -->
-                                            <td>@order.OrderDate?.ToString("yyyy-MM-dd")</td>
-                                            <td>@order.TotalAmount?.ToString("C")</td>
+                                            <td>@order.UserFullName</td>
+                                            <td>@(order.OrderDate.HasValue ? order.OrderDate.Value.ToString("yyyy-MM-dd") : "N/A")</td>
+                                            <td>@(order.TotalAmount.HasValue ? order.TotalAmount.Value.ToString("C") : "N/A")</td>
                                             <td>@order.Status</td>
+                                            <td>
+                                                @if (order.OrderDetails != null && order.OrderDetails.Any())
+                                                {
+                                                    <ul class="list-unstyled">
+                                                        @foreach (var detail in order.OrderDetails)
+                                                        {
+                                                            <li>
+                                                                <img src="@(detail.Book?.ImageURL ?? "/uploads/default.jpg")" alt="Book Image" style="width: 50px; height: 50px; margin-right: 10px;" />
+                                                                @detail.Book?.Title (@detail.Quantity)
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                }
+                                                else
+                                                {
+                                                    <span>No details available</span>
+                                                }
+                                            </td>
                                             <td class="text-center">
                                                 @if (order.Status == "Pending")
                                                 {
@@ -80,3 +97,11 @@
         </div>
     </div>
 </div>
+
+<style>
+    .list-unstyled li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+</style>
