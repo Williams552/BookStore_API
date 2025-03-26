@@ -32,8 +32,6 @@ builder.Services.AddAuthentication(options =>
 .AddCookie()
 .AddGoogle(options =>
 {
-    options.ClientId = builder.Configuration.GetValue<string>("Authentication:Google:ClientId");
-    options.ClientSecret = builder.Configuration.GetValue<string>("Authentication:Google:ClientSecret");
     options.AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/auth";
     options.TokenEndpoint = "https://oauth2.googleapis.com/token";
     options.CallbackPath = new PathString("/signin-google");
