@@ -42,8 +42,8 @@
                                             <input type="hidden" name="quantity" value="1">
                                             <button type="submit" class="btn btn-primary">Add To Cart</button>
                                         </form>
-                                        <a class="icon-wish-btn" asp-action="" asp-controller="">
-                                            <i class="bi bi-heart-fill wish-icon"></i>
+                                        <a class="like btn btn-default icon-wish-btn" asp-action="" asp-controller="">
+                                            <span class="fa fa-heart wish-icon"></span>
                                         </a>
                                     </div>
                                 </div>
@@ -298,10 +298,10 @@
                     if (response.success) {
                         alert("Add Successful"); // Hiển thị thông báo
                     } else {
-                        alert("Thêm thất bại: " + response.message);
+                        alert("Please Login!");
                     }
                 }).fail(function () {
-                    alert("Có lỗi xảy ra khi thêm vào giỏ hàng.");
+                    alert("Add Failed");
                 });
             });
         });
