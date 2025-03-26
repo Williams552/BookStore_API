@@ -44,6 +44,13 @@ namespace BookStore_Client.Controllers
             _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
         }
 
+        public static Dictionary<string, string> DecodeJwtToken(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            return jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
+        }
+
         [HttpGet("login")]
         public IActionResult Login()
         {
@@ -61,27 +68,32 @@ namespace BookStore_Client.Controllers
             try
             {
                 var requestUrl = $"{_apiBaseUrl}/login?username={user.Username}&password={user.Password}";
-                var content = new StringContent("", System.Text.Encoding.UTF8, "application/json");
+                var content = new StringContent("", Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(requestUrl, content);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    HttpContext.Session.SetString("Username", user.Username);
-                    HttpContext.Session.SetInt32("UserID", user.UserID);
                     var json = await response.Content.ReadAsStringAsync();
-                    var result = System.Text.Json.JsonSerializer.Deserialize<User>(json, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
+                    var jsonObject = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(json);
+                    string token = jsonObject.GetProperty("token").GetString();
+                    HttpContext.Session.SetString("JWTToken", token);
+                    var userInfo = DecodeJwtToken(token);
+                    int userId = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.NameIdentifier));
+                    int role = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.Role));
+                    string email = Convert.ToString(userInfo.GetValueOrDefault(ClaimTypes.Email));
+                    HttpContext.Session.SetString("Username", user.Username);
+                    HttpContext.Session.SetString("Email", email);
+                    HttpContext.Session.SetInt32("UserId", userId);
+                    HttpContext.Session.SetInt32("Role", role);
                     return RedirectToAction("Index", "Home");
                 }
                 ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng!");
-                return View(user);
+                return RedirectToAction("Login", "User");
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, $"Tài khoản hoặc mật khẩu không đúng!");
-                return View(user);
+                return RedirectToAction("Login", "User");
             }
         }
 
