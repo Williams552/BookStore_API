@@ -56,7 +56,7 @@
                     @if (HttpContextAccessor.HttpContext.Session.GetString("customerInfo") != null)
                     {
                         var userDataJson = HttpContextAccessor.HttpContext.Session.GetString("customerInfo");
-                        var user = Newtonsoft.Json.JsonConvert.DeserializeObject<BookStore_API.Models.User>(userDataJson);
+                        var user = Newtonsoft.Json.JsonConvert.DeserializeObject<BookStore_Client.Models.User>(userDataJson);
 
                         <div class="dropdown">
                             <a class="dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">

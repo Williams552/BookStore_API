@@ -34,7 +34,7 @@ namespace BookStore_Client.Controllers
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("API request failed with status code: {StatusCode}. Returning empty order list.", response.StatusCode);
-                    return View(new List<OrderViewModel>());
+                    return View(new List<Models.OrderViewModel>());
                 }
 
                 var data = await response.Content.ReadAsStringAsync();
@@ -43,18 +43,18 @@ namespace BookStore_Client.Controllers
                 if (string.IsNullOrEmpty(data))
                 {
                     _logger.LogWarning("API returned empty data. Returning empty order list.");
-                    return View(new List<OrderViewModel>());
+                    return View(new List<Models.OrderViewModel>());
                 }
 
                 var orders = JsonConvert.DeserializeObject<List<Order>>(data);
                 if (orders == null)
                 {
                     _logger.LogError("Deserialization failed: orders is null. Returning empty order list.");
-                    return View(new List<OrderViewModel>());
+                    return View(new List<Models.OrderViewModel>());
                 }
 
                 // Tạo danh sách OrderViewModel và lấy FullName từ API User
-                var orderViewModels = new List<OrderViewModel>();
+                var orderViewModels = new List<Models.OrderViewModel>();
                 foreach (var order in orders)
                 {
                     string userFullName = "Unknown";
@@ -75,7 +75,7 @@ namespace BookStore_Client.Controllers
                         }
                     }
 
-                    orderViewModels.Add(new OrderViewModel
+                    orderViewModels.Add(new Models.OrderViewModel
                     {
                         OrderID = order.OrderID,
                         UserFullName = userFullName,
@@ -92,17 +92,17 @@ namespace BookStore_Client.Controllers
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "Network error occurred while calling API: {ApiUrl}", _apiUrl);
-                return View(new List<OrderViewModel>());
+                return View(new List<Models.OrderViewModel>());
             }
             catch (JsonException ex)
             {
                 _logger.LogError(ex, "Failed to deserialize API response: {Data}", await _httpClient.GetStringAsync(_apiUrl));
-                return View(new List<OrderViewModel>());
+                return View(new List<Models.OrderViewModel>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error in Index action.");
-                return View(new List<OrderViewModel>());
+                return View(new List<Models.OrderViewModel>());
             }
         }
 
@@ -135,5 +135,37 @@ namespace BookStore_Client.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        public async Task<IActionResult> HistoryOrder()
+        {
+            // Lấy userId từ session (hoặc token, tùy cách bạn lưu thông tin user)
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue)
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+
+
+
+
+            var response = await _httpClient.GetAsync($"user/{userId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var orders = JsonConvert.DeserializeObject<List<Models.OrderViewModel>>(content);
+                return View(orders);
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return RedirectToAction("Login", "User");
+            }
+            else
+            {
+                ViewBag.ErrorMessage = "Unable to load order history.";
+                return View(new List<Models.OrderViewModel>());
+            }
+        }
+
     }
 }
