@@ -115,5 +115,26 @@ namespace BookStore_API.Controllers
             }
             return Ok(cart);
         }
+
+        // DELETE: api/cart/deleteCartByUser/{userId}
+        [HttpDelete("deleteCartByUser/{userId}")]
+        public async Task<IActionResult> DeleteCartByUser(int userId)
+        {
+            try
+            {
+                var result = await _cartService.DeleteCartByUser(userId);
+
+                if (result)
+                {
+                    return Ok($"All cart items for user {userId} have been deleted.");
+                }
+
+                return NotFound($"No cart items found for user {userId}.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while deleting cart items: {ex.Message}");
+            }
+        }
     }
 }

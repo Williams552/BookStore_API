@@ -83,6 +83,7 @@ namespace BookStore_API.Controllers
             return Ok(user);
         }
 
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UserDTO userDTO)
         {
@@ -283,7 +284,34 @@ namespace BookStore_API.Controllers
             await smtp.SendMailAsync(message);
         }
 
-        // Trong BookStore_API.Controllers.UserController
+        [HttpPost("save-otp")]
+        public async Task<IActionResult> SaveOtp([FromBody] SaveOtpRequest request)
+        {
+            try
+            {
+                var user = await _userRepository.GetFirstByCondition(u => u.Email == request.Email);
+                if (user == null)
+                {
+                    return NotFound(new { Message = "Email không tồn tại trong hệ thống." });
+                }
+
+                user.OTP = request.Otp;
+                user.TimeOtp = DateTime.UtcNow;
+                await _userRepository.Update(user);
+                return Ok(new { Message = "OTP đã được lưu." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = $"Lỗi khi lưu OTP: {ex.Message}" });
+            }
+        }
+
+        public class SaveOtpRequest
+        {
+            public string Email { get; set; }
+            public int Otp { get; set; }
+        }
+
         [HttpPost("{id}/change-password")]
         public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
         {
@@ -319,5 +347,36 @@ namespace BookStore_API.Controllers
             public string NewPassword { get; set; }
             public string ConfirmPassword { get; set; }
         }
+
+        [HttpGet("non-admin")]
+        public async Task<ActionResult<IEnumerable<User>>> GetNonAdminUsers()
+        {
+            var users = await _userRepository.GetByCondition(u => u.Role != 1 && u.IsDelete != true);
+            if (users == null || !users.Any())
+            {
+                return NotFound("No non-admin users found.");
+            }
+            return Ok(users);
+        }
+
+        [HttpPut("{id}/block")]
+        public async Task<IActionResult> BlockUser(int id)
+        {
+            var user = await _userRepository.GetById(id);
+            if (user == null)
+            {
+                return NotFound($"User with ID {id} not found.");
+            }
+
+            user.IsDelete = true;
+            user.UpdateAt = DateOnly.FromDateTime(DateTime.Now);
+            await _userRepository.Update(user);
+
+            return Ok(new { Message = "User has been blocked successfully." });
+        }
+
+
     }
+
+
 }

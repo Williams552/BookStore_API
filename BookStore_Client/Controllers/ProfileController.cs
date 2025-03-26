@@ -153,7 +153,6 @@ namespace BookStore_Client.Controllers
         public string NewPassword { get; set; }
 
         [Required(ErrorMessage = "Xác nhận mật khẩu là bắt buộc.")]
-
         [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp với mật khẩu mới.")]
         public string ConfirmPassword { get; set; }
     }

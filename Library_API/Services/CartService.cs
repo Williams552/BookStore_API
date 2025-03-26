@@ -99,5 +99,22 @@ namespace BookStore_API.Services
             return delete;
         }
 
+        public async Task<bool> DeleteCartByUser(int userId)
+        {
+            // Assuming you have access to the cart repository
+            var userCarts = (await _cartRepository.GetAll()).Where(c => c.UserID == userId).ToList();
+
+            if (!userCarts.Any())
+            {
+                return false;
+            }
+
+            foreach (var cart in userCarts)
+            {
+                await _cartRepository.Delete(cart);
+            }
+
+            return true;
+        }
     }
 }

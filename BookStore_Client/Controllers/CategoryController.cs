@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using BookStore_Client.Models;
-using BookStore_API.Domain.DTO;
 using static System.Net.WebRequestMethods;
 using BookStore_Client.Domain.DTO;
 

@@ -10,5 +10,6 @@ namespace BookStore_API.Services.Interface
         Task<Cart?> AddToCart(int bookId, int userId, int quantity);
         Task<Cart?> Upsert(int bookId, int userId, int quantity);
         Task<Cart> DeleteCart(int bookId, int userId);
+        Task<bool> DeleteCartByUser(int userId);
     }
 }
