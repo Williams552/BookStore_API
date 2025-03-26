@@ -83,6 +83,7 @@ namespace BookStore_API.Controllers
             return Ok(user);
         }
 
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UserDTO userDTO)
         {
@@ -337,6 +338,8 @@ namespace BookStore_API.Controllers
 
             return Ok(new { Message = "User has been blocked successfully." });
         }
+
+
     }
 
 
