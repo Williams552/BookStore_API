@@ -2,6 +2,8 @@
 using CodeMegaVNPay.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Orders_API.Models;
+using Orders_API.Repository;
 
 namespace BookStore_API.Controllers
 {
@@ -10,6 +12,7 @@ namespace BookStore_API.Controllers
     public class VNPaymentController : ControllerBase
     {
         private readonly IVnPayService _vnPayService;
+        private IRepository<Order> _orderRepository;
 
         public VNPaymentController(IVnPayService vnPayService)
         {
@@ -24,9 +27,17 @@ namespace BookStore_API.Controllers
         }
 
         [HttpGet("PaymentCallback")]
-        public IActionResult PaymentCallback()
+        public async Task<IActionResult> PaymentCallback()
         {
             var response = _vnPayService.PaymentExecute(Request.Query);
+            if (response.Success)
+            {
+                var orderId = int.Parse(response.OrderDescription);
+                var order = await _orderRepository.GetById(orderId);
+                order.Status = "Paid";
+                await _orderRepository.Update(order);
+            }
+
             return new JsonResult(response);
         }
     }

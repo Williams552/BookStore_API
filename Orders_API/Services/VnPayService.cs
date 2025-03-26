@@ -41,7 +41,6 @@ namespace CodeMegaVNPay.Services
         {
             var pay = new VnPayLibrary();
             var response = pay.GetFullResponseData(collections, _configuration["Vnpay:HashSecret"]);
-
             return response;
         }
     }

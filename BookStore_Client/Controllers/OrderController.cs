@@ -8,6 +8,7 @@ using BookStore_Client.Models.ViewModel;
 using System.Text.Json;
 using System.Text;
 using BookStore_Client.Domain.DTO;
+using BookStore_Client.DTOs;
 
 
 
@@ -268,13 +269,27 @@ namespace BookStore_Client.Controllers
                 return Json(new { success = false, message = "Tạo đơn hàng thất bại." });
             }
 
-            // Xóa giỏ hàng sau khi đặt hàng thành công
-            var deleteCartResponse = await _httpClient.DeleteAsync($"{_cartApiUrl}/DeleteCartByUser/{userId}");
-            if (!deleteCartResponse.IsSuccessStatusCode)
+            if (paymentMethod == 2)
             {
-                // Xử lý lỗi nếu cần
+                var createdOrder = await orderResponse.Content.ReadFromJsonAsync<Order>();
+                var vnPayModel = new PaymentInformationDTO
+                {
+                    OrderType = "",
+                    Amount = (double)createdOrder.TotalAmount,
+                    OrderDescription = createdOrder.OrderID.ToString(),
+                    Name = ""
+                };
+
+                // Gọi API VNPay
+                var vnPayResponse = await _httpClient.PostAsJsonAsync(
+                    "https://localhost:7218/api/VNPayment/CreatePayment",
+                    vnPayModel);
+
+                var paymentUrl = await vnPayResponse.Content.ReadAsStringAsync();
+                return Redirect(paymentUrl);
             }
 
+            await _httpClient.DeleteAsync($"{_apiUrl}/DeleteCartByUser/{userId}");
             return RedirectToAction("HistoryOrder");
         }
 
