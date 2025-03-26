@@ -275,7 +275,7 @@ namespace BookStore_Client.Controllers
                 // Xử lý lỗi nếu cần
             }
 
-            return Json(new { success = true, message = "Đặt hàng thành công!" });
+            return RedirectToAction("HistoryOrder");
         }
 
     }
