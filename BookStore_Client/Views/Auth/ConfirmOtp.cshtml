@@ -8,7 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Xác nhận OTP</title>
+    <title>Confirm OTP</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -66,19 +66,19 @@
 </head>
 <body>
     <div class="container">
-        <h2>Xác nhận OTP</h2>
-        <p>Chúng tôi đã gửi mã OTP đến email: @ViewBag.Email. Vui lòng nhập mã để hoàn tất đăng ký.</p>
+        <h2>Confirm OTP</h2>
+        <p>We have sent an OTP code to your email: @ViewBag.Email. Please enter the code to complete your registration.</p>
         <p id="countdown">Time left: 02:00</p>
         <div id="message"></div>
 
         <form id="otpForm" method="post">
-            @Html.AntiForgeryToken() <!-- Đảm bảo có token -->
+            @Html.AntiForgeryToken() <!-- Ensure token is present -->
             <input type="hidden" name="email" value="@ViewBag.Email" id="emailInput" />
             <div class="form-group">
                 <label for="otp" class="control-label">Enter OTP</label>
                 <input name="otp" class="form-control" id="otpInput" required />
             </div>
-            <button type="submit" class="btn btn-primary btn-block" id="verifyBtn">Xác nhận</button>
+            <button type="submit" class="btn btn-primary btn-block" id="verifyBtn">Confirm</button>
         </form>
 
         <button id="resendOtp" class="btn btn-success btn-block" disabled>Resend OTP</button>
@@ -87,7 +87,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        let timeLeft = 120; // 2 phút
+        let timeLeft = 120; // 2 minutes
         let countdownElement = document.getElementById("countdown");
         let verifyButton = document.getElementById("verifyBtn");
         let resendOtpButton = document.getElementById("resendOtp");
@@ -136,7 +136,7 @@
                 error: function (xhr, status, error) {
                     console.log("AJAX Error: " + status + " - " + error);
                     console.log("Response Text: " + xhr.responseText);
-                    $("#message").html('<div class="alert alert-danger">Có lỗi xảy ra: ' + (xhr.responseText || error) + '</div>');
+                    $("#message").html('<div class="alert alert-danger">An error occurred: ' + (xhr.responseText || error) + '</div>');
                 }
             });
         });
@@ -146,7 +146,7 @@
             $(this).prop("disabled", true);
 
             $.ajax({
-                url: '@Url.Action("ResendOtp", "Auth")', // Sửa thành Auth
+                url: '@Url.Action("ResendOtp", "Auth")',
                 type: "POST",
                 data: { email: email },
                 success: function (response) {

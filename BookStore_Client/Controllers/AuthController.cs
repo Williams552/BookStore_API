@@ -64,14 +64,14 @@ namespace BookStore_Client.Controllers
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"Error Response from API: {errorContent}");
                 var error = System.Text.Json.JsonSerializer.Deserialize<dynamic>(errorContent);
-                string errorMessage = error.Message?.ToString() ?? "Lỗi không xác định từ API";
+                string errorMessage = error.Message?.ToString() ?? "An unknown error occurred from the API.";
                 ModelState.AddModelError("Email", errorMessage);
                 return BadRequest(ModelState);
             }
             catch (HttpRequestException ex)
             {
                 Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
-                ModelState.AddModelError("Email", "Không thể kết nối đến API.");
+                ModelState.AddModelError("Email", "Unable to connect to the API.");
                 return BadRequest(ModelState);
             }
         }
@@ -97,13 +97,13 @@ namespace BookStore_Client.Controllers
             var sessionEmail = HttpContext.Session.GetString("Email");
             if (string.IsNullOrEmpty(sessionEmail) || sessionEmail != email)
             {
-                ModelState.AddModelError("", "Phiên làm việc không hợp lệ.");
+                ModelState.AddModelError("", "Invalid session.");
                 return BadRequest(ModelState);
             }
 
             if (string.IsNullOrEmpty(otp))
             {
-                ModelState.AddModelError("", "OTP là bắt buộc.");
+                ModelState.AddModelError("", "OTP is required.");
                 return BadRequest(ModelState);
             }
 
@@ -111,7 +111,7 @@ namespace BookStore_Client.Controllers
             var otpSentTimeStr = HttpContext.Session.GetString("OtpSentTime");
             if (string.IsNullOrEmpty(otpSentTimeStr))
             {
-                ModelState.AddModelError("", "Không tìm thấy thời gian gửi OTP.");
+                ModelState.AddModelError("", "OTP sent time not found.");
                 return BadRequest(ModelState);
             }
 
@@ -119,7 +119,7 @@ namespace BookStore_Client.Controllers
             var timeElapsed = (DateTime.UtcNow - otpSentTime).TotalMinutes;
             if (timeElapsed > 1)
             {
-                ModelState.AddModelError("", "OTP đã hết hạn (vượt quá 2 phút). Vui lòng yêu cầu gửi lại OTP.");
+                ModelState.AddModelError("", "OTP has expired (exceeded 2 minutes). Please request a new OTP.");
                 return BadRequest(ModelState);
             }
 
@@ -147,14 +147,14 @@ namespace BookStore_Client.Controllers
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"Error Response from API: {errorContent}");
                 var error = System.Text.Json.JsonSerializer.Deserialize<dynamic>(errorContent);
-                string errorMessage = error.Message?.ToString() ?? "Lỗi không xác định từ API";
+                string errorMessage = error.Message?.ToString() ?? "An unknown error occurred from the API.";
                 ModelState.AddModelError("", errorMessage);
                 return BadRequest(ModelState);
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
-                ModelState.AddModelError("", "Không thể kết nối đến API.");
+                //Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
+                ModelState.AddModelError("", "Unable to connect to the API.");
                 return BadRequest(ModelState);
             }
         }
@@ -176,7 +176,7 @@ namespace BookStore_Client.Controllers
             if (sessionEmail != email)
             {
                 Console.WriteLine("Session email does not match received email");
-                return BadRequest(new { Message = "Phiên làm việc không hợp lệ." });
+                return BadRequest(new { Message = "Invalid session." });
             }
 
             // Kiểm tra thời gian OTP trong session
@@ -188,7 +188,7 @@ namespace BookStore_Client.Controllers
                 if (timeElapsed <= 2)
                 {
                     Console.WriteLine("OTP still valid, less than 2 minutes elapsed");
-                    return BadRequest(new { Message = "OTP hiện tại vẫn còn hiệu lực. Vui lòng đợi 2 phút trước khi yêu cầu gửi lại." });
+                    return BadRequest(new { Message = "OTP is still valid. Please wait 2 minutes before requesting a new one." });
                 }
             }
 
@@ -219,13 +219,13 @@ namespace BookStore_Client.Controllers
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"Error Response from API: {errorContent}");
                 var error = System.Text.Json.JsonSerializer.Deserialize<dynamic>(errorContent);
-                string errorMessage = error.Message?.ToString() ?? "Lỗi không xác định từ API";
+                string errorMessage = error.Message?.ToString() ?? "An unknown error occurred from the API.";
                 return BadRequest(new { Message = errorMessage });
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
-                return BadRequest(new { Message = "Không thể kết nối đến API." });
+                //Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
+                return BadRequest(new { Message = "Unable to connect to the API." });
             }
         }
 
@@ -286,14 +286,14 @@ namespace BookStore_Client.Controllers
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"Error Response from API: {errorContent}");
                 var error = System.Text.Json.JsonSerializer.Deserialize<dynamic>(errorContent);
-                string errorMessage = error.Message?.ToString() ?? "Lỗi không xác định từ API";
+                string errorMessage = error.Message?.ToString() ?? "An unknown error occurred from the API.";
                 ModelState.AddModelError("", errorMessage);
                 return BadRequest(ModelState);
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
-                ModelState.AddModelError("", "Không thể kết nối đến API.");
+                //Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
+                ModelState.AddModelError("", "Unable to connect to the API.");
                 return BadRequest(ModelState);
             }
         }
@@ -363,13 +363,13 @@ namespace BookStore_Client.Controllers
                         {
                             var otpErrorContent = await otpResponse.Content.ReadAsStringAsync();
                             var otpErrorResult = JsonConvert.DeserializeObject<dynamic>(otpErrorContent);
-                            ModelState.AddModelError("", otpErrorResult.Message?.ToString() ?? "Không thể lưu OTP.");
+                            ModelState.AddModelError("", otpErrorResult.Message?.ToString() ?? "Unable to save OTP.");
                             return View(model);
                         }
                     }
                     else
                     {
-                        var errorMessage = result.message?.ToString() ?? "Đăng ký thất bại.";
+                        var errorMessage = result.message?.ToString() ?? "Registration failed.";
                         ModelState.AddModelError("", errorMessage);
                         return View(model);
                     }
@@ -377,13 +377,13 @@ namespace BookStore_Client.Controllers
 
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"Error Response from API: {errorContent}");
-                ModelState.AddModelError("", $"Đăng ký thất bại");
+                ModelState.AddModelError("", $"Registration failed.");
                 return View(model);
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
-                ModelState.AddModelError("", "Không thể kết nối đến API.");
+                Console.WriteLine($"Error from call API: {ex.Message}");
+                ModelState.AddModelError("", "Unable to connect to the API.");
                 return View(model);
             }
         }
@@ -436,7 +436,7 @@ namespace BookStore_Client.Controllers
             var sessionEmail = HttpContext.Session.GetString("Email");
             if (string.IsNullOrEmpty(sessionEmail) || sessionEmail != email)
             {
-                return Json(new { success = false, message = "Phiên làm việc không hợp lệ hoặc email không khớp." });
+                return Json(new { success = false, message = "Invalid session or email does not match." });
             }
 
             // Gửi yêu cầu đến API để xác nhận OTP và cập nhật IsActive
@@ -456,26 +456,26 @@ namespace BookStore_Client.Controllers
                     HttpContext.Session.Remove("Otp");
                     HttpContext.Session.Remove("Email");
                     HttpContext.Session.Remove("OtpTime");
-                    return Json(new { success = true, message = "Đăng ký thành công! Chuyển hướng đến trang đăng nhập...", redirectUrl = "/api/Auth/User/login" });
+                    return Json(new { success = true, message = "Registration successful! Redirecting to the login page...", redirectUrl = "/api/Auth/User/login" });
                 }
                 else
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
                     Console.WriteLine($"Error Response from API: {errorContent}");
                     var errorResult = JsonConvert.DeserializeObject<dynamic>(errorContent);
-                    var errorMessage = errorResult?.Message?.ToString() ?? $"Lỗi không xác định từ API (Status: {response.StatusCode})";
+                    var errorMessage = errorResult?.Message?.ToString() ?? $"An unknown error occurred from the API (Status: {response.StatusCode})";
                     return Json(new { success = false, message = errorMessage });
                 }
             }
             catch (HttpRequestException ex)
             {
                 Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
-                return Json(new { success = false, message = $"Không thể kết nối đến API: {ex.Message}" });
+                return Json(new { success = false, message = $"Unable to connect to the API {ex.Message}" });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in ConfirmOtp: {ex.Message}");
-                return Json(new { success = false, message = $"Có lỗi xảy ra: {ex.Message}" });
+                return Json(new { success = false, message = $"An error occurred: {ex.Message}" });
             }
         }
     }

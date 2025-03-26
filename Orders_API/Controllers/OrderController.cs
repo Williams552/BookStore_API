@@ -201,7 +201,7 @@ namespace Orders_API.Controllers
                 foreach (var detail in existingOrder.OrderDetails)
                 {
                     var response = await _httpClient.PutAsJsonAsync(
-                        $"Book/updateStock/{detail.BookID}",
+                        $"updateStock/{detail.BookID}",
                         detail.Quantity);
 
                     if (!response.IsSuccessStatusCode)

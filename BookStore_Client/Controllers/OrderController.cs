@@ -15,7 +15,7 @@ using BookStore_Client.Domain.DTO;
 
 namespace BookStore_Client.Controllers
 {
-    public class OrderController : BaseController
+    public class OrderController : Controller
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl = "https://localhost:7218/api/OrderService/Order";

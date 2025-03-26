@@ -5,8 +5,8 @@ namespace Orders_API.DataAccess
 { 
     public class OrderDbContext : DbContext
     {
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<Order> Order { get; set; }
+        public DbSet<OrderDetail> OrderDetail { get; set; }
         public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
