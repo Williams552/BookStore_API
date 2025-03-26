@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Orders_API.DataAccess;
 using Orders_API.DataAccess.DAOs;
 using Orders_API.Models;
@@ -11,6 +11,7 @@ using CodeMegaVNPay.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+//Tạo một đối tượng HttpClient để gửi yêu cầu HTTP đến các dịch vụ khác
 builder.Services.AddHttpClient();
 builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
