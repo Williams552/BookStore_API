@@ -115,6 +115,7 @@ builder.Services.AddScoped<IMapperService, MapperService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IWishService, WishService>();
 
 var app = builder.Build();
 

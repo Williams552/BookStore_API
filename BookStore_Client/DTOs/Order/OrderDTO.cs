@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 
 namespace BookStore_Client.Domain.DTO
 {
@@ -25,8 +25,8 @@ namespace BookStore_Client.Domain.DTO
         public int OrderID { get; set; }
         public int UserID { get; set; }
         public DateTime? OrderDate { get; set; }
-        public decimal? TotalAmount { get; set; } // Thêm
-        public int? PaymentMethod { get; set; }  // Thêm
+        public decimal? TotalAmount { get; set; } // Thï¿½m
+        public int? PaymentMethod { get; set; }  // Thï¿½m
         public string Status { get; set; }
         public List<OrderDetailDTO> OrderDetails { get; set; }
     }

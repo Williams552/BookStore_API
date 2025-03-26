@@ -42,9 +42,12 @@
                                             <input type="hidden" name="quantity" value="1">
                                             <button type="submit" class="btn btn-primary">Add To Cart</button>
                                         </form>
-                                        <a class="like btn btn-default icon-wish-btn" asp-action="" asp-controller="">
-                                            <span class="fa fa-heart wish-icon"></span>
-                                        </a>
+                                        <form asp-action="AddToList" asp-controller="WishList" method="post">
+                                            <input type="hidden" name="bookId" value="@book.BookID" />
+                                            <button type="submit" class="like btn btn-default icon-wish-btn">
+                                                <span class="fa fa-heart wish-icon"></span>
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -326,10 +329,10 @@
                     if (response.success) {
                         alert("Add Successful"); // Hiển thị thông báo
                     } else {
-                        alert("Please Login!");
+                        alert("Please Login");
                     }
                 }).fail(function () {
-                    alert("Add Failed");
+                    alert("Please Login");
                 });
             });
         });

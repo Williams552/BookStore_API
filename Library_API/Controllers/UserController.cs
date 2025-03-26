@@ -104,9 +104,9 @@ namespace BookStore_API.Controllers
             user.CreateAt = existingUser.CreateAt;
             user.IsDelete = existingUser.IsDelete;
             user.Role = existingUser.Role;
-
+            user.Password = existingUser.Password;
             await Task.Run(() => _userRepository.Update(user));
-            return NoContent();
+            return Ok(user);
         }
 
         [HttpDelete("{id}")]

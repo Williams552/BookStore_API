@@ -15,6 +15,7 @@ namespace BookStore_Client.Controllers
 
         public ProfileController(IHttpClientFactory httpClientFactory)
         {
+            _apiBaseUrl = "https://localhost:7202/api/User";
             _httpClientFactory = httpClientFactory;
         }
 
@@ -22,6 +23,7 @@ namespace BookStore_Client.Controllers
         public async Task<IActionResult> Index()
         {
             var client = _httpClientFactory.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:7202/api/User/"); // Thay bằng URL API thực tế
             try
             {
                 int userId = HttpContext.Session.GetInt32("UserId") ?? 1; // Lấy từ session thay vì cố định
@@ -34,6 +36,7 @@ namespace BookStore_Client.Controllers
                     {
                         PropertyNameCaseInsensitive = true
                     });
+
                     return View(user);
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)

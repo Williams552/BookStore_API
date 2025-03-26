@@ -33,7 +33,7 @@ public partial class User
     public int? OTP { get; set; }
     public DateTime? TimeOtp { get; set; }
 
-    public bool IsActive { get; set; } = false;
+    public bool? IsActive { get; set; } = false;
 
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 

@@ -1,5 +1,5 @@
 ﻿
-namespace BookStore_Client.Models;
+namespace BookStore_API.Models;
 
 public partial class Order
 {

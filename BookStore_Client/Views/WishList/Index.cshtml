@@ -1,0 +1,67 @@
+﻿@model IEnumerable<BookStore_Client.Models.WishList>
+
+@{
+    ViewData["Title"] = "List of Authors";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">WishList</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">Title</th>
+                                    <th scope="col">Image</th>
+                                    <th scope="col" class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var author in Model)
+                                    {
+                                        <tr>
+                                            <td hidden>@author.Book.BookID</td>
+                                            <td>@author.Book.Title</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(author.Book.ImageURL))
+                                                {
+                                                    <img src="@author.Book.ImageURL" alt="@author.Book.Title" class="img-fluid rounded" style="max-width: 50px; max-height: 50px;" />
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No image available</span>
+                                                }
+                                            </td>
+
+                                            <td class="text-center">
+                                                <form asp-action="Delete" asp-controller="WishList" method="post">
+                                                    <input type="hidden" name="bookId" value="@author.Book.BookID" />
+                                                    <button type="submit" class="like btn btn-default icon-wish-btn">
+                                                        X
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-4">No item.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
