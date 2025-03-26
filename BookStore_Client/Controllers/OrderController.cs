@@ -11,8 +11,8 @@ namespace BookStore_Client.Controllers
     public class OrderController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiUrl = "http://localhost:7218/api/OrderService/order";
-        private readonly string _userApiUrl = "http://localhost:7202/api/user"; // Giả sử endpoint API cho User
+        private readonly string _apiUrl = "https://localhost:7218/api/OrderService/order";
+        private readonly string _userApiUrl = "https://localhost:7202/api/user"; // Giả sử endpoint API cho User
         private readonly ILogger<OrderController> _logger;
 
         public OrderController(HttpClient httpClient, ILogger<OrderController> logger)
@@ -34,7 +34,7 @@ namespace BookStore_Client.Controllers
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("API request failed with status code: {StatusCode}. Returning empty order list.", response.StatusCode);
-                    return View(new List<Models.OrderViewModel>());
+                    return View(new List<Models.ViewModel.OrderViewModel>());
                 }
 
                 var data = await response.Content.ReadAsStringAsync();
@@ -43,18 +43,17 @@ namespace BookStore_Client.Controllers
                 if (string.IsNullOrEmpty(data))
                 {
                     _logger.LogWarning("API returned empty data. Returning empty order list.");
-                    return View(new List<Models.OrderViewModel>());
+                    return View(new List<Models.ViewModel.OrderViewModel>());
                 }
 
                 var orders = JsonConvert.DeserializeObject<List<Order>>(data);
                 if (orders == null)
                 {
                     _logger.LogError("Deserialization failed: orders is null. Returning empty order list.");
-                    return View(new List<Models.OrderViewModel>());
+                    return View(new List<Models.ViewModel.OrderViewModel>());
                 }
 
-                // Tạo danh sách OrderViewModel và lấy FullName từ API User
-                var orderViewModels = new List<Models.OrderViewModel>();
+                var orderViewModels = new List<Models.ViewModel.OrderViewModel>();
                 foreach (var order in orders)
                 {
                     string userFullName = "Unknown";
@@ -65,17 +64,19 @@ namespace BookStore_Client.Controllers
                         if (userResponse.IsSuccessStatusCode)
                         {
                             var userData = await userResponse.Content.ReadAsStringAsync();
+                            _logger.LogDebug("User API response: {UserData}", userData); // Ghi log dữ liệu trả về
                             var user = JsonConvert.DeserializeObject<User>(userData);
                             userFullName = user?.FullName ?? "Unknown";
                             _logger.LogDebug("User FullName fetched: {FullName}", userFullName);
                         }
                         else
                         {
-                            _logger.LogWarning("Failed to fetch user info for UserID: {UserID}. Status: {StatusCode}", order.UserID, userResponse.StatusCode);
+                            var errorContent = await userResponse.Content.ReadAsStringAsync();
+                            _logger.LogWarning("Failed to fetch user info for UserID: {UserID}. Status: {StatusCode}. Error: {Error}", order.UserID, userResponse.StatusCode, errorContent);
                         }
                     }
 
-                    orderViewModels.Add(new Models.OrderViewModel
+                    orderViewModels.Add(new Models.ViewModel.OrderViewModel
                     {
                         OrderID = order.OrderID,
                         UserFullName = userFullName,
@@ -92,17 +93,17 @@ namespace BookStore_Client.Controllers
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "Network error occurred while calling API: {ApiUrl}", _apiUrl);
-                return View(new List<Models.OrderViewModel>());
+                return View(new List<Models.ViewModel.OrderViewModel>());
             }
             catch (JsonException ex)
             {
                 _logger.LogError(ex, "Failed to deserialize API response: {Data}", await _httpClient.GetStringAsync(_apiUrl));
-                return View(new List<Models.OrderViewModel>());
+                return View(new List<Models.ViewModel.OrderViewModel>());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error in Index action.");
-                return View(new List<Models.OrderViewModel>());
+                return View(new List<Models.ViewModel.OrderViewModel>());
             }
         }
 
@@ -153,7 +154,7 @@ namespace BookStore_Client.Controllers
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var orders = JsonConvert.DeserializeObject<List<Models.OrderViewModel>>(content);
+                var orders = JsonConvert.DeserializeObject<List<Models.ViewModel.OrderViewModel>>(content);
                 return View(orders);
             }
             else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -163,7 +164,7 @@ namespace BookStore_Client.Controllers
             else
             {
                 ViewBag.ErrorMessage = "Unable to load order history.";
-                return View(new List<Models.OrderViewModel>());
+                return View(new List<Models.ViewModel.OrderViewModel>());
             }
         }
 
