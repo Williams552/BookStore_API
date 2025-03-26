@@ -1,5 +1,4 @@
-﻿using BookStore_API.DataAccess;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +17,9 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text;
 using System.Net.Http.Headers;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Http;
+using BookStore_Client.Domain.DTO;
 
 namespace BookStore_Client.Controllers
 {
@@ -26,20 +28,28 @@ namespace BookStore_Client.Controllers
     public class UserController : Controller
     {
         private readonly string _apiBaseUrl = "";
-        private readonly BookStoreContext _context;
+        //private readonly BookStoreContext _context;
         private readonly HttpClient _httpClient = null;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserController(IHttpContextAccessor httpContextAccessor, BookStoreContext context, IHttpClientFactory httpClientFactory, HttpClient httpClient)
+        public UserController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory,
+            HttpClient httpClient)
         {
             _apiBaseUrl = "http://localhost:7202/api/User";
-            _context = context;
+            //_context = context;
             _httpClient = new HttpClient();
             _httpClientFactory = httpClientFactory;
             _httpContextAccessor = httpContextAccessor;
             var contentType = new MediaTypeWithQualityHeaderValue("application/json");
             _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
+        }
+
+        public static Dictionary<string, string> DecodeJwtToken(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            return jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
         }
 
         [HttpGet("login")]
@@ -64,22 +74,25 @@ namespace BookStore_Client.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    HttpContext.Session.SetString("Username", user.Username);
-                    HttpContext.Session.SetInt32("UserID", user.UserID);
                     var json = await response.Content.ReadAsStringAsync();
-                    var result = System.Text.Json.JsonSerializer.Deserialize<User>(json, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
+                    var jsonObject = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(json);
+                    string token = jsonObject.GetProperty("token").GetString();
+                    HttpContext.Session.SetString("JWTToken", token);
+                    var userInfo = DecodeJwtToken(token);
+                    int userId = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.NameIdentifier));
+                    int role = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.Role));
+                    HttpContext.Session.SetString("Username", user.Username);
+                    HttpContext.Session.SetInt32("UserId", userId);
+                    HttpContext.Session.SetInt32("Role", role);
                     return RedirectToAction("Index", "Home");
                 }
                 ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng!");
-                return View(user);
+                return RedirectToAction("Login", "User");
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, $"Tài khoản hoặc mật khẩu không đúng!");
-                return View(user);
+                return RedirectToAction("Login", "User");
             }
         }
 
@@ -110,75 +123,75 @@ namespace BookStore_Client.Controllers
             return RedirectToAction("Login", "User");
         }
 
-        public IActionResult GoogleLogin()
-        {
-            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        }
+        //public IActionResult GoogleLogin()
+        //{
+        //    var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
+        //    return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        //}
 
-        public async Task<IActionResult> GoogleResponse()
-        {
-            var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        //public async Task<IActionResult> GoogleResponse()
+        //{
+        //    var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            if (!authenticateResult.Succeeded)
-            {
-                return RedirectToAction(nameof(Login)); // Nếu thất bại, quay về trang đăng nhập
-            }
+        //    if (!authenticateResult.Succeeded)
+        //    {
+        //        return RedirectToAction(nameof(Login)); // Nếu thất bại, quay về trang đăng nhập
+        //    }
 
-            var claims = authenticateResult.Principal.Identities
-                .FirstOrDefault()?.Claims.ToList();
+        //    var claims = authenticateResult.Principal.Identities
+        //        .FirstOrDefault()?.Claims.ToList();
 
-            var emailClaim = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var firstName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
-            var lastName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
+        //    var emailClaim = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        //    var firstName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
+        //    var lastName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
 
-            if (!string.IsNullOrEmpty(emailClaim))
-            {
-                var user = _context.Users.FirstOrDefault(u => u.Email == emailClaim);
+        //    if (!string.IsNullOrEmpty(emailClaim))
+        //    {
+        //        var user = _context.Users.FirstOrDefault(u => u.Email == emailClaim);
 
-                if (user == null)
-                {
-                    // Tạo tài khoản mới nếu chưa có trong DB
-                    user = new BookStore_API.Models.User
-                    {
-                        Username = $"{firstName} {lastName}".Trim(),
-                        Email = emailClaim,
-                        Password = null, // Không cần mật khẩu vì dùng Google
-                        FullName = $"{firstName} {lastName}".Trim(), // Ghép tên thành FullName
-                        Gender = null, // Google không trả về giới tính
-                        Address = null,
-                        Phone = null,
-                        ImageUrl = null, // Có thể lấy ảnh từ Google sau này nếu cần
-                        CreateAt = DateOnly.FromDateTime(DateTime.Now),
-                        UpdateAt = null,
-                        IsDelete = false,
-                        Role = 3 // Giả sử 3 là role của user thường
-                    };
+        //        if (user == null)
+        //        {
+        //            // Tạo tài khoản mới nếu chưa có trong DB
+        //            user = new BookStore_API.Models.User
+        //            {
+        //                Username = $"{firstName} {lastName}".Trim(),
+        //                Email = emailClaim,
+        //                Password = null, // Không cần mật khẩu vì dùng Google
+        //                FullName = $"{firstName} {lastName}".Trim(), // Ghép tên thành FullName
+        //                Gender = null, // Google không trả về giới tính
+        //                Address = null,
+        //                Phone = null,
+        //                ImageUrl = null, // Có thể lấy ảnh từ Google sau này nếu cần
+        //                CreateAt = DateOnly.FromDateTime(DateTime.Now),
+        //                UpdateAt = null,
+        //                IsDelete = false,
+        //                Role = 3 // Giả sử 3 là role của user thường
+        //            };
 
-                    _context.Users.Add(user);
-                    await _context.SaveChangesAsync();
-                }
+        //            _context.Users.Add(user);
+        //            await _context.SaveChangesAsync();
+        //        }
 
-                // Lưu thông tin vào session
-                HttpContext.Session.Remove("customerInfo");
-                HttpContext.Session.SetString("Username", user.Username);   
-                string userDataJson = JsonConvert.SerializeObject(user);
-                HttpContext.Session.SetString("customerInfo", userDataJson);
+        //        // Lưu thông tin vào session
+        //        HttpContext.Session.Remove("customerInfo");
+        //        HttpContext.Session.SetString("Username", user.Username);   
+        //        string userDataJson = JsonConvert.SerializeObject(user);
+        //        HttpContext.Session.SetString("customerInfo", userDataJson);
 
-                // Điều hướng dựa trên Role
-                if (user.Role == 1)
-                {
-                    return RedirectToAction("Index", "Users");
-                }
-                else if (user.Role == 3)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-            }
+        //        // Điều hướng dựa trên Role
+        //        if (user.Role == 1)
+        //        {
+        //            return RedirectToAction("Index", "Users");
+        //        }
+        //        else if (user.Role == 3)
+        //        {
+        //            return RedirectToAction("Index", "Home");
+        //        }
+        //    }
 
-            // Nếu không có email, quay về trang login
-            return RedirectToAction(nameof(Login));
-        }
+        //    // Nếu không có email, quay về trang login
+        //    return RedirectToAction(nameof(Login));
+        //}
 
         private string GenerateOTP()
         {
@@ -337,77 +350,77 @@ namespace BookStore_Client.Controllers
         // POST: Register/ForgotPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForgotPassword(string email)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
-            {
-                ModelState.AddModelError("Email", "Email không tồn tại trong hệ thống.");
-                return View();
-            }
+        //public async Task<IActionResult> ForgotPassword(string email)
+        //{
+        //    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        //    if (user == null)
+        //    {
+        //        ModelState.AddModelError("Email", "Email không tồn tại trong hệ thống.");
+        //        return View();
+        //    }
 
-            string otp = GenerateOTP();
-            await SendOTPEmailAsync(email, otp);
+        //    string otp = GenerateOTP();
+        //    await SendOTPEmailAsync(email, otp);
 
-            HttpContext.Session.SetString("Otp", otp);
-            HttpContext.Session.SetString("Email", user.Email);
-            Console.WriteLine($"Saved to session - Email: '{user.Email}', OTP: '{otp}'");
+        //    HttpContext.Session.SetString("Otp", otp);
+        //    HttpContext.Session.SetString("Email", user.Email);
+        //    Console.WriteLine($"Saved to session - Email: '{user.Email}', OTP: '{otp}'");
 
-            return RedirectToAction("VerifyOtpForPasswordReset");
-        }
+        //    return RedirectToAction("VerifyOtpForPasswordReset");
+        //}
 
-        [HttpGet("VerifyOtpForPasswordReset")]
-        public IActionResult VerifyOtpForPasswordReset()
-        {
-            var email = HttpContext.Session.GetString("Email");
-            ViewBag.Email = email;
-            return View();
-        }
+        //[HttpGet("VerifyOtpForPasswordReset")]
+        //public IActionResult VerifyOtpForPasswordReset()
+        //{
+        //    var email = HttpContext.Session.GetString("Email");
+        //    ViewBag.Email = email;
+        //    return View();
+        //}
 
-        // POST: Register/VerifyOtpForPasswordReset
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> VerifyOtpForPasswordReset(string email, string otp)
-        {
-            var sessionOtp = HttpContext.Session.GetString("Otp")?.Trim();
-            var sessionEmail = HttpContext.Session.GetString("Email")?.Trim();
-            otp = otp?.Trim();
+        //// POST: Register/VerifyOtpForPasswordReset
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> VerifyOtpForPasswordReset(string email, string otp)
+        //{
+        //    var sessionOtp = HttpContext.Session.GetString("Otp")?.Trim();
+        //    var sessionEmail = HttpContext.Session.GetString("Email")?.Trim();
+        //    otp = otp?.Trim();
 
-            Console.WriteLine($"Session Email: '{sessionEmail}', Form Email: '{email}', Session OTP: '{sessionOtp}', Input OTP: '{otp}'");
+        //    Console.WriteLine($"Session Email: '{sessionEmail}', Form Email: '{email}', Session OTP: '{sessionOtp}', Input OTP: '{otp}'");
 
-            if (string.IsNullOrEmpty(sessionOtp) || string.IsNullOrEmpty(sessionEmail))
-            {
-                ModelState.AddModelError("Otp", "Phiên OTP không hợp lệ. Vui lòng thử lại từ bước quên mật khẩu.");
-                ViewBag.Email = sessionEmail ?? email; // Gán lại ViewBag.Email
-                return View();
-            }
+        //    if (string.IsNullOrEmpty(sessionOtp) || string.IsNullOrEmpty(sessionEmail))
+        //    {
+        //        ModelState.AddModelError("Otp", "Phiên OTP không hợp lệ. Vui lòng thử lại từ bước quên mật khẩu.");
+        //        ViewBag.Email = sessionEmail ?? email; // Gán lại ViewBag.Email
+        //        return View();
+        //    }
 
-            if (!string.Equals(sessionEmail, email, StringComparison.OrdinalIgnoreCase))
-            {
-                ModelState.AddModelError("Otp", "Email không khớp với phiên hiện tại.");
-                ViewBag.Email = sessionEmail; // Gán lại ViewBag.Email
-                return View();
-            }
+        //    if (!string.Equals(sessionEmail, email, StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        ModelState.AddModelError("Otp", "Email không khớp với phiên hiện tại.");
+        //        ViewBag.Email = sessionEmail; // Gán lại ViewBag.Email
+        //        return View();
+        //    }
 
-            if (string.Equals(sessionOtp, otp))
-            {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == sessionEmail);
-                if (user == null)
-                {
-                    ModelState.AddModelError("Otp", "Không tìm thấy người dùng với email này.");
-                    ViewBag.Email = sessionEmail; // Gán lại ViewBag.Email
-                    return View();
-                }
+        //    if (string.Equals(sessionOtp, otp))
+        //    {
+        //        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == sessionEmail);
+        //        if (user == null)
+        //        {
+        //            ModelState.AddModelError("Otp", "Không tìm thấy người dùng với email này.");
+        //            ViewBag.Email = sessionEmail; // Gán lại ViewBag.Email
+        //            return View();
+        //        }
 
-                HttpContext.Session.Remove("Otp");
-                HttpContext.Session.Remove("Email");
-                return RedirectToAction("ResetPassword", new { email = user.Email });
-            }
+        //        HttpContext.Session.Remove("Otp");
+        //        HttpContext.Session.Remove("Email");
+        //        return RedirectToAction("ResetPassword", new { email = user.Email });
+        //    }
 
-            ModelState.AddModelError("Otp", "OTP không chính xác.");
-            ViewBag.Email = sessionEmail; // Gán lại ViewBag.Email
-            return View();
-        }
+        //    ModelState.AddModelError("Otp", "OTP không chính xác.");
+        //    ViewBag.Email = sessionEmail; // Gán lại ViewBag.Email
+        //    return View();
+        //}
 
         // GET: Register/ResetPassword
         [HttpGet("ResetPassword")]
@@ -420,30 +433,30 @@ namespace BookStore_Client.Controllers
         // POST: Register/ResetPassword
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(string email, string newPassword, string confirmPassword)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
-            {
-                return NotFound();
-            }
+        //public async Task<IActionResult> ResetPassword(string email, string newPassword, string confirmPassword)
+        //{
+        //    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        //    if (user == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            if (newPassword != confirmPassword)
-            {
-                ModelState.AddModelError("ConfirmPassword", "Mật khẩu xác nhận không khớp.");
-                return View();
-            }
+        //    if (newPassword != confirmPassword)
+        //    {
+        //        ModelState.AddModelError("ConfirmPassword", "Mật khẩu xác nhận không khớp.");
+        //        return View();
+        //    }
 
-            // Hash the new password
-            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        //    // Hash the new password
+        //    user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
 
-            // Save changes to the database
-            await _context.SaveChangesAsync();
+        //    // Save changes to the database
+        //    await _context.SaveChangesAsync();
 
-            return Redirect("/User/Login");
+        //    return Redirect("/User/Login");
 
 
-        }
+        //}
 
         public async Task<IActionResult> Profile()
         {

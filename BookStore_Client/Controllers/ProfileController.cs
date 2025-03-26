@@ -11,7 +11,7 @@ namespace BookStore_Client.Controllers
 
         public ProfileController(IHttpClientFactory httpClientFactory)
         {
-            _apiBaseUrl = "https://localhost:7202/api/User";
+            _apiBaseUrl = "http://localhost:7202/api/User";
             _httpClientFactory = httpClientFactory;
         }
 
@@ -19,7 +19,7 @@ namespace BookStore_Client.Controllers
         public async Task<IActionResult> Index()
         {
             var client = _httpClientFactory.CreateClient();
-            client.BaseAddress = new Uri("https://localhost:7202/api/User/"); // Thay bằng URL API thực tế
+            client.BaseAddress = new Uri("http://localhost:7202/api/User/"); // Thay bằng URL API thực tế
             try
             {
                 int userId = 1; // UserID cố định

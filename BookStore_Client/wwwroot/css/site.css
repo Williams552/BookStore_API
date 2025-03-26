@@ -66,3 +66,24 @@ body {
     .search-box input:focus + .search-icon {
         display: none;
     }
+
+
+/* CSS mới để ẩn các mục */
+.hidden {
+    display: none;
+}
+
+.font-edit {
+    font-size: 22px;
+    font-weight: 700;
+    align-items: center;
+}
+
+.icon-wish-btn {
+    background: #fff;
+}
+
+.wish-icon {
+    /*    background-color: #ff0000;*/
+    color: #ff0000;
+}

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BookStore_Client.Models;
 using BookStore_API.Domain.DTO;
 using static System.Net.WebRequestMethods;
+using BookStore_Client.Domain.DTO;
 
 namespace BookStore_Client.Controllers
 {
@@ -17,7 +18,7 @@ namespace BookStore_Client.Controllers
 
         public CategoryController()
         {
-            _apiBaseUrl = "https://localhost:7202/api/Category";
+            _apiBaseUrl = "http://localhost:7202/api/Category";
             _httpClient = new HttpClient();
         }
 

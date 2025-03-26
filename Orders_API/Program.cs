@@ -6,6 +6,7 @@ using Orders_API.Repository;
 using Orders_API.Services;
 using Orders_API.Services.Interface;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using CodeMegaVNPay.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped(typeof(IDao<>), typeof(Dao<>));
 builder.Services.AddScoped<IMapperService, MapperService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;

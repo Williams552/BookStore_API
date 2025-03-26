@@ -146,5 +146,25 @@ namespace Orders_API.Controllers
 
             return Ok(orderDTOs);
         }
+        // Trong Orders_API.Controllers.OrderController
+        [HttpPut("{id}/confirm")]
+        public async Task<IActionResult> ConfirmOrder(int id)
+        {
+            var existingOrder = await Task.Run(() => _orderRepository.GetById(id));
+            if (existingOrder == null)
+            {
+                return NotFound($"Order with ID {id} not found.");
+            }
+
+            if (existingOrder.Status != "Pending")
+            {
+                return BadRequest("Only orders with 'Pending' status can be confirmed.");
+            }
+
+            existingOrder.Status = "Accept";
+            await Task.Run(() => _orderRepository.Update(existingOrder));
+
+            return NoContent();
+        }
     }
 }

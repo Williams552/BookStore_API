@@ -46,6 +46,25 @@ namespace BookStore_API.Controllers
         }
 
         // POST: api/cart
+        [HttpPost("AddToCart")]
+        public async Task<ActionResult<Cart>> AddToCart(int bookId, int userId, int quantity)
+        {
+            try
+            {
+                var cart = await _cartService.AddToCart(bookId, userId, quantity);
+                return Ok(cart);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
+            }
+        }
+
+        // POST: api/cart
         [HttpPost("Upsert")]
         public async Task<ActionResult<Cart>> Upsert(int bookId, int userId, int quantity)
         {
