@@ -5,19 +5,26 @@ using System.Threading.Tasks;
 using BookStore_Client.Models;
 using Microsoft.Extensions.Logging;
 using BookStore_Client.Models.ViewModel;
+using System.Text.Json;
+using System.Text;
+using BookStore_Client.Domain.DTO;
+
+
 
 namespace BookStore_Client.Controllers
 {
     public class OrderController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiUrl = "https://localhost:7218/api/OrderService/order";
+        private readonly string _apiUrl = "https://localhost:7218/api/OrderService/Order";
         private readonly string _userApiUrl = "https://localhost:7202/api/user"; // Giả sử endpoint API cho User
+        private readonly string _cartApiUrl = "https://localhost:7202/api/cart"; // Giả sử endpoint API cho Book
         private readonly ILogger<OrderController> _logger;
 
         public OrderController(HttpClient httpClient, ILogger<OrderController> logger)
         {
             _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri(_apiUrl);
             _logger = logger;
         }
 
@@ -53,6 +60,7 @@ namespace BookStore_Client.Controllers
                     return View(new List<Models.ViewModel.OrderViewModel>());
                 }
 
+                // Tạo danh sách OrderViewModel và lấy FullName từ API User
                 var orderViewModels = new List<Models.ViewModel.OrderViewModel>();
                 foreach (var order in orders)
                 {
@@ -95,7 +103,7 @@ namespace BookStore_Client.Controllers
                 _logger.LogError(ex, "Network error occurred while calling API: {ApiUrl}", _apiUrl);
                 return View(new List<Models.ViewModel.OrderViewModel>());
             }
-            catch (JsonException ex)
+            catch (System.Text.Json.JsonException ex)
             {
                 _logger.LogError(ex, "Failed to deserialize API response: {Data}", await _httpClient.GetStringAsync(_apiUrl));
                 return View(new List<Models.ViewModel.OrderViewModel>());
@@ -139,34 +147,141 @@ namespace BookStore_Client.Controllers
 
         public async Task<IActionResult> HistoryOrder()
         {
-            // Lấy userId từ session (hoặc token, tùy cách bạn lưu thông tin user)
             var userId = HttpContext.Session.GetInt32("UserId");
+            _logger.LogInformation("Session UserId: {UserId}", userId);
             if (!userId.HasValue)
             {
+                _logger.LogWarning("UserId not found in session.");
                 return RedirectToAction("Login", "User");
             }
 
-
-
-
-
-            var response = await _httpClient.GetAsync($"user/{userId}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var content = await response.Content.ReadAsStringAsync();
-                var orders = JsonConvert.DeserializeObject<List<Models.ViewModel.OrderViewModel>>(content);
-                return View(orders);
+                var requestUrl = $"{_apiUrl}/user/{userId}";
+                _logger.LogInformation("Calling Orders_API: {Url}", requestUrl);
+                var response = await _httpClient.GetAsync($"{_apiUrl}/user/{userId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("Response: {Content}", content);
+                    var apiOrders = JsonConvert.DeserializeObject<List<OrderViewDTO1>>(content);
+
+                    if (apiOrders == null || !apiOrders.Any())
+                    {
+                        ViewBag.ErrorMessage = "No orders found.";
+                        return View(new List<OrderViewModel>());
+                    }
+
+                    var orders = apiOrders.Select(o => new OrderViewModel
+                    {
+                        OrderID = o.OrderID,
+                        UserID = o.UserID,
+                        OrderDate = o.OrderDate.HasValue ? DateOnly.FromDateTime(o.OrderDate.Value) : null,
+                        Status = o.Status,
+                        TotalAmount = o.TotalAmount,
+                        PaymentMethod = o.PaymentMethod,
+                        OrderDetails = o.OrderDetails?.Select(d => new OrderDetailViewModel
+                        {
+                            OrderDetailID = d.OrderDetailID,
+                            OrderID = d.OrderID,
+                            BookID = d.BookID,
+                            Quantity = d.Quantity,
+                            UnitPrice = d.UnitPrice,
+                            Book = d.Book != null ? new BookViewModel
+                            {
+                                BookID = d.Book.BookID,
+                                Title = d.Book.Title,
+                                ImageURL = d.Book.ImageURL
+                            } : null
+                        }).ToList() ?? new List<OrderDetailViewModel>()
+                    }).ToList();
+
+                    return View(orders);
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("API error. Status: {StatusCode}, Response: {ErrorContent}", response.StatusCode, errorContent);
+                    ViewBag.ErrorMessage = $"API error: {response.StatusCode}. Response: {errorContent}";
+                    return View(new List<OrderViewModel>());
+                }
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                return RedirectToAction("Login", "User");
-            }
-            else
+            catch (HttpRequestException ex)
             {
                 ViewBag.ErrorMessage = "Unable to load order history.";
                 return View(new List<Models.ViewModel.OrderViewModel>());
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Checkout(int paymentMethod, string address)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+                _logger.LogError(ex, "Failed to connect to Orders_API: {Url}", $"{_apiUrl}/user/{userId}");
+                ViewBag.ErrorMessage = "Cannot connect to Orders API. " + ex.Message;
+                return View(new List<OrderViewModel>());
+            }
+        }
+    } 
+
+            // Lấy thông tin giỏ hàng từ API
+            List<Cart> cartItems;
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync($"{_cartApiUrl}/getCartByUserId{userId}");
+                if (!response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = false, message = "Không thể lấy thông tin giỏ hàng." });
+                }
+                var jsonString = await response.Content.ReadAsStringAsync();
+                cartItems = System.Text.Json.JsonSerializer.Deserialize<List<Cart>>(jsonString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                if (cartItems == null || cartItems.Count == 0)
+                {
+                    return Json(new { success = false, message = "Giỏ hàng trống." });
+                }
+            }
+
+            // Tạo OrderDTO
+            var orderDTO = new OrderDTO
+            {
+                UserID = userId.Value,
+                OrderDate = DateOnly.FromDateTime(DateTime.Now),
+                TotalAmount = cartItems.Sum(c => c.TotalPrice ?? 0),
+                PaymentMethod = paymentMethod,
+                Status = "Pending",
+                Address = paymentMethod == 1 ? address : null, // Chỉ lưu địa chỉ khi COD
+                OrderDetails = cartItems.Select(c => new OrderDetailDTO
+                {
+                    BookID = c.BookID.Value,
+                    Quantity = c.Quantity.Value
+                }).ToList()
+            };
+
+            // Gửi yêu cầu tạo Order đến Order API
+            var orderApiUrl = "https://localhost:7218/api/OrderService/Order";
+            var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(orderDTO), Encoding.UTF8, "application/json");
+            var orderResponse = await _httpClient.PostAsync(orderApiUrl, jsonContent);
+
+            if (!orderResponse.IsSuccessStatusCode)
+            {
+                return Json(new { success = false, message = "Tạo đơn hàng thất bại." });
+            }
+
+            // Xóa giỏ hàng sau khi đặt hàng thành công
+            var deleteCartResponse = await _httpClient.DeleteAsync($"{_cartApiUrl}/DeleteCartByUser/{userId}");
+            if (!deleteCartResponse.IsSuccessStatusCode)
+            {
+                // Xử lý lỗi nếu cần
+            }
+
+            return Json(new { success = true, message = "Đặt hàng thành công!" });
+        }
     }
 }

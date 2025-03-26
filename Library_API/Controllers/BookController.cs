@@ -153,5 +153,33 @@ namespace BookStore_API.Controllers
 
             return Ok(books);
         }
+
+        // PUT: api/book/updateStock/{id}
+        [HttpPut("updateStock/{id}")]
+        public async Task<IActionResult> UpdateBookStock(int id, [FromBody] int quantity)
+        {
+            try
+            {
+                var book = await _bookRepository.GetById(id);
+                if (book == null)
+                {
+                    return NotFound($"Book with ID {id} not found.");
+                }
+
+                if (book.Stock < quantity)
+                {
+                    return BadRequest("Insufficient stock");
+                }
+
+                book.Stock -= quantity;
+                await _bookRepository.Update(book);
+
+                return Ok(book);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error updating stock: {ex.Message}");
+            }
+        }
     }
 }
