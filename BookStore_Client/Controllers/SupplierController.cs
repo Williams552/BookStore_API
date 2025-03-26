@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace BookStore_Client.Controllers
 {
-    public class SupplierController : Controller
+    public class SupplierController : BaseController
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl = "https://localhost:7202/api/Supplier";

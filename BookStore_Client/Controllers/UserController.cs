@@ -32,6 +32,25 @@ namespace BookStore_Client.Controllers
             _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
         }
 
+        private IActionResult CheckAdminAccess()
+        {
+            var role = HttpContext.Session.GetInt32("Role");
+
+            if (!role.HasValue)
+            {
+                // Nếu chưa đăng nhập, chuyển hướng đến trang đăng nhập
+                return RedirectToAction("Login", "User");
+            }
+
+            if (role != 1)
+            {
+                // Nếu không phải admin, chuyển hướng về trang Home Page
+                return Redirect("https://localhost:7106/");
+            }
+
+            return null; // Cho phép tiếp tục nếu là admin
+        }
+
         public static Dictionary<string, string> DecodeJwtToken(string token)
         {
             var handler = new JwtSecurityTokenHandler();
@@ -73,7 +92,23 @@ namespace BookStore_Client.Controllers
                     HttpContext.Session.SetString("Email", email);
                     HttpContext.Session.SetInt32("UserId", userId);
                     HttpContext.Session.SetInt32("Role", role);
-                    return RedirectToAction("Index", "Home");
+
+                    // Phân quyền sau khi đăng nhập
+                    if (role == 1) // Admin
+                    {
+                        return Redirect("https://localhost:7106/Book");
+                    }
+                    else if (role == 2 || role == 3) // Người dùng thông thường
+                    {
+                        return Redirect("https://localhost:7106/");
+                    }
+                    else
+                    {
+                        // Nếu Role không hợp lệ, đăng xuất và chuyển về trang đăng nhập
+                        HttpContext.Session.Clear();
+                        ModelState.AddModelError(string.Empty, "Vai trò không hợp lệ!");
+                        return RedirectToAction("Login", "User");
+                    }
                 }
                 ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng!");
                 return RedirectToAction("Login", "User");
@@ -141,13 +176,20 @@ namespace BookStore_Client.Controllers
                     string userDataJson = JsonConvert.SerializeObject(user);
                     Microsoft.AspNetCore.Http.SessionExtensions.SetString(HttpContext.Session, "customerInfo", userDataJson);
 
-                    if (user.Role == 1)
+                    // Phân quyền sau khi đăng nhập bằng Google
+                    if (user.Role == 1) // Admin
                     {
-                        return RedirectToAction("Index", "Users");
+                        return Redirect("https://localhost:7106/Book");
                     }
-                    else if (user.Role == 3)
+                    else if (user.Role == 2 || user.Role == 3) // Người dùng thông thường
                     {
-                        return RedirectToAction("Index", "Home");
+                        return Redirect("https://localhost:7106/");
+                    }
+                    else
+                    {
+                        // Nếu Role không hợp lệ, đăng xuất và chuyển về trang đăng nhập
+                        HttpContext.Session.Clear();
+                        return RedirectToAction(nameof(Login));
                     }
                 }
             }
@@ -160,6 +202,20 @@ namespace BookStore_Client.Controllers
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
+        }
+
+        // Thêm kiểm tra quyền truy cập cho các action khác trong UserController
+        [HttpGet]
+        public IActionResult Index()
+        {
+            var redirectResult = CheckAdminAccess();
+            if (redirectResult != null)
+            {
+                return redirectResult;
+            }
+
+            // Logic hiển thị danh sách người dùng (dành cho admin)
+            return View();
         }
     }
 }

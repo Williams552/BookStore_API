@@ -23,7 +23,7 @@
 
     <header id="navbar_top" class="bg-white">
         <div class="container">
-            <nav class="navbar navbar-expand-lg  py-3">
+            <nav class="navbar navbar-expand-lg py-3">
                 <!--site logo -->
                 <a class="navbar-brand" asp-controller="Home" asp-action="Index">
                     <img src="/images/logo.png" alt="Site Logo" width="200">
@@ -40,7 +40,14 @@
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index"><i class="bi bi-house-fill"></i> Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Author"><i class="bi bi-pencil-square"></i> Author</a>
+                            @if (Context.Session.GetInt32("Role") == 1) // Sử dụng Context.Session thay vì HttpContext.Session
+                            {
+                                <a class="nav-link" asp-area="" asp-controller="Book" asp-action="Index"><i class="bi bi-gear"></i> Dashboard</a>
+                            }
+                            else
+                            {
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Author"><i class="bi bi-pencil-square"></i> Author</a>
+                            }
                         </li>
                     </ul>
 
@@ -50,13 +57,13 @@
                             Cart
                             <span class="badge bg-dark text-white ms-1 rounded-pill">@Context.Session.GetInt32("CartItemCount")</span>
                         </a>
-                        @if (HttpContextAccessor.HttpContext.Session.GetString("Username") != null)
+                        @if (Context.Session.GetString("Username") != null) // Sử dụng Context.Session
                         {
                             <div class="nav-item dropdown">
                                 <a class="btn btn-outline-dark ms-2" href="#" role="button" data-bs-toggle="dropdown"
                                    aria-expanded="false">
                                     <i class="bi-person-fill me-1"></i>
-                                    @HttpContextAccessor.HttpContext.Session.GetString("Username")
+                                    @Context.Session.GetString("Username")
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                     <li>
@@ -103,13 +110,15 @@
         <!-- header banner -->
         <section class="header-banner bookpress-parallax" id="header-banner-id">
             <div class="container d-flex justify-content-between align-items-center text-white">
-            <div class="overlay-out">
-                <h1 class="banner-title">Unlock a World of Knowledge with Books</h1>
+                <div class="overlay-out">
+                    <h1 class="banner-title">Unlock a World of Knowledge with Books</h1>
+                </div>
+                <img src="/images/banner-image.png" class="img-fluid" alt="Books">
+                <div class="parallax start-0 top-0 w-100 h-100"></div>
             </div>
-            <img src="/images/banner-image.png" class="img-fluid" alt="Books">
-            <div class="parallax start-0 top-0 w-100 h-100"></div>
-        </div>
-        </section><!-- header banner end -->
+        </section>
+
+        <!-- header banner end -->
     }
 
     <div class="container">
@@ -123,10 +132,10 @@
 
     <footer class="border-top footer text-muted mt-5">
         <div class="copyright">
-            <p class="my-auto">&copy; 2022 BookPress. All Rights Reserved</p>
+            <p class="my-auto">© 2022 BookPress. All Rights Reserved</p>
         </div>
     </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BookStore_Client.Controllers
 {
-    public class AuthorController : Controller
+    public class AuthorController : BaseController
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiBaseUrl = "";

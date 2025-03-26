@@ -11,7 +11,7 @@ using BookStore_Client.Domain.DTO;
 
 namespace BookStore_Client.Controllers
 {
-    public class CategoryController : Controller
+    public class CategoryController : BaseController
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiBaseUrl = "";

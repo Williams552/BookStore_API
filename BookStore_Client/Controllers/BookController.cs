@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace BookStore_Client.Controllers
 {
-    public class BookController : Controller
+    public class BookController : BaseController
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl = "";

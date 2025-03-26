@@ -8,7 +8,7 @@ using BookStore_Client.Models.ViewModel;
 
 namespace BookStore_Client.Controllers
 {
-    public class OrderController : Controller
+    public class OrderController : BaseController
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl = "https://localhost:7218/api/OrderService/order";
