@@ -242,6 +242,34 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
+        // Logic cho Search Box
+        const searchInput = document.querySelector('.search-box input');
+        const searchIcon = document.querySelector('.search-icon');
+
+        function updateSearchIconVisibility() {
+            const isFocused = document.activeElement === searchInput;
+            const hasValue = searchInput.value.trim().length > 0;
+
+            // Ẩn biểu tượng nếu input đang focus HOẶC có dữ liệu
+            if (isFocused || hasValue) {
+                searchIcon.style.display = 'none';
+            } else {
+                searchIcon.style.display = 'block';
+            }
+        }
+
+        // Gọi hàm khi trang tải để kiểm tra giá trị ban đầu
+        updateSearchIconVisibility();
+
+        // Sự kiện khi input thay đổi giá trị
+        searchInput.addEventListener('input', updateSearchIconVisibility);
+
+        // Sự kiện khi input được focus
+        searchInput.addEventListener('focus', updateSearchIconVisibility);
+
+        // Sự kiện khi input mất focus
+        searchInput.addEventListener('blur', updateSearchIconVisibility);
+
         // Logic cho Popular Category
         document.querySelector('.show-all-categories')?.addEventListener('click', function (e) {
             e.preventDefault();

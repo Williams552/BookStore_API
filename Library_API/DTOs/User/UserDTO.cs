@@ -13,5 +13,6 @@ namespace BookStore_API.Domain.DTO
         public string? Address { get; set; }
         public string? Gender { get; set; }
         public string? ImageUrl { get; set; }
+        public int? Role { get; set; }
     }
 }

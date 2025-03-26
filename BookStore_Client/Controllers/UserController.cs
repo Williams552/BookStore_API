@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,8 +18,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text;
 using System.Net.Http.Headers;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using BookStore_Client.Domain.DTO;
 
 namespace BookStore_Client.Controllers
@@ -33,23 +33,15 @@ namespace BookStore_Client.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory,
-            HttpClient httpClient)
+        public UserController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, HttpClient httpClient)
         {
-            _apiBaseUrl = "http://localhost:7202/api/User";
-            //_context = context;
+            _apiBaseUrl = "https://localhost:7202/api/User";
+            // _context = context;
             _httpClient = new HttpClient();
             _httpClientFactory = httpClientFactory;
             _httpContextAccessor = httpContextAccessor;
             var contentType = new MediaTypeWithQualityHeaderValue("application/json");
             _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
-        }
-
-        public static Dictionary<string, string> DecodeJwtToken(string token)
-        {
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(token);
-            return jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
         }
 
         [HttpGet("login")]
@@ -74,392 +66,102 @@ namespace BookStore_Client.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var jsonObject = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(json);
-                    string token = jsonObject.GetProperty("token").GetString();
-                    HttpContext.Session.SetString("JWTToken", token);
-                    var userInfo = DecodeJwtToken(token);
-                    int userId = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.NameIdentifier));
-                    int role = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.Role));
-                    string email = Convert.ToString(userInfo.GetValueOrDefault(ClaimTypes.Email));
                     HttpContext.Session.SetString("Username", user.Username);
-                    HttpContext.Session.SetString("Email", email);
-                    HttpContext.Session.SetInt32("UserId", userId);
-                    HttpContext.Session.SetInt32("Role", role);
+                    HttpContext.Session.SetInt32("UserID", user.UserID);
+                    var json = await response.Content.ReadAsStringAsync();
+                    var result = System.Text.Json.JsonSerializer.Deserialize<User>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
                     return RedirectToAction("Index", "Home");
                 }
                 ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng!");
-                return RedirectToAction("Login", "User");
+                return View(user);
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, $"Tài khoản hoặc mật khẩu không đúng!");
-                return RedirectToAction("Login", "User");
-            }
-        }
-
-        [HttpGet("register")]
-        public IActionResult Register()
-        {
-            return View();
-        }
-
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromForm] User user)
-        {
-            var userDTO = new User
-            {
-                Username = user.Username,
-                Password = user.Password,
-                Email = user.Email,
-                Phone = user.Phone
-            };
-
-            var jsonContent = JsonConvert.SerializeObject(userDTO);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"{_apiBaseUrl}/register", content);
-            if (!response.IsSuccessStatusCode)
-            {
                 return View(user);
             }
-            return RedirectToAction("Login", "User");
         }
 
-        //public IActionResult GoogleLogin()
-        //{
-        //    var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
-        //    return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        //}
 
-        //public async Task<IActionResult> GoogleResponse()
-        //{
-        //    var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-        //    if (!authenticateResult.Succeeded)
-        //    {
-        //        return RedirectToAction(nameof(Login)); // Nếu thất bại, quay về trang đăng nhập
-        //    }
-
-        //    var claims = authenticateResult.Principal.Identities
-        //        .FirstOrDefault()?.Claims.ToList();
-
-        //    var emailClaim = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        //    var firstName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
-        //    var lastName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
-
-        //    if (!string.IsNullOrEmpty(emailClaim))
-        //    {
-        //        var user = _context.Users.FirstOrDefault(u => u.Email == emailClaim);
-
-        //        if (user == null)
-        //        {
-        //            // Tạo tài khoản mới nếu chưa có trong DB
-        //            user = new BookStore_API.Models.User
-        //            {
-        //                Username = $"{firstName} {lastName}".Trim(),
-        //                Email = emailClaim,
-        //                Password = null, // Không cần mật khẩu vì dùng Google
-        //                FullName = $"{firstName} {lastName}".Trim(), // Ghép tên thành FullName
-        //                Gender = null, // Google không trả về giới tính
-        //                Address = null,
-        //                Phone = null,
-        //                ImageUrl = null, // Có thể lấy ảnh từ Google sau này nếu cần
-        //                CreateAt = DateOnly.FromDateTime(DateTime.Now),
-        //                UpdateAt = null,
-        //                IsDelete = false,
-        //                Role = 3 // Giả sử 3 là role của user thường
-        //            };
-
-        //            _context.Users.Add(user);
-        //            await _context.SaveChangesAsync();
-        //        }
-
-        //        // Lưu thông tin vào session
-        //        HttpContext.Session.Remove("customerInfo");
-        //        HttpContext.Session.SetString("Username", user.Username);   
-        //        string userDataJson = JsonConvert.SerializeObject(user);
-        //        HttpContext.Session.SetString("customerInfo", userDataJson);
-
-        //        // Điều hướng dựa trên Role
-        //        if (user.Role == 1)
-        //        {
-        //            return RedirectToAction("Index", "Users");
-        //        }
-        //        else if (user.Role == 3)
-        //        {
-        //            return RedirectToAction("Index", "Home");
-        //        }
-        //    }
-
-        //    // Nếu không có email, quay về trang login
-        //    return RedirectToAction(nameof(Login));
-        //}
-
-        private string GenerateOTP()
+        [HttpGet("google-login")]
+        public IActionResult GoogleLogin()
         {
-            Random random = new Random();
-            int otpNumber = random.Next(100000, 999999);
-            return otpNumber.ToString();
+            var properties = new AuthenticationProperties { RedirectUri = Url.Action("GoogleResponse") };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
-        private async Task SendOTPEmailAsync(string email, string otp)
+        [HttpGet("google-response")]
+        public async Task<IActionResult> GoogleResponse()
         {
-            var fromAddress = new MailAddress("phamngocquan812@gmail.com", "Cursus");
-            var toAddress = new MailAddress(email);
-            const string fromPassword = "ljzi zden qcwr mcwt";
-            const string subject = "Your OTP Code";
-            string body = $"Dear, {email}\n\nYour OTP code is {otp}\n\nBest regards,\nCursus";
-            HttpContext.Session.SetString("OtpTime", DateTime.Now.ToString());
-            var smtp = new SmtpClient
+            var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            if (!authenticateResult.Succeeded)
             {
-                Host = "smtp.gmail.com",
-                Port = 587,
-                EnableSsl = true,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(fromAddress.Address, fromPassword)
-            };
-
-            using var message = new MailMessage(fromAddress, toAddress)
-            {
-                Subject = subject,
-                Body = body
-            };
-            smtp.Send(message);
-        }
-
-        [HttpGet("ConfirmOtp")]
-        public IActionResult ConfirmOtp()
-        {
-            var email = HttpContext.Session.GetString("Email");
-            ViewBag.Email = email;
-            return View();
-        }
-
-        // POST: Register/ConfirmOtp
-        [HttpPost]
-        public async Task<IActionResult> ConfirmOtp(string email, string otp)
-        {
-            var sessionOtp = HttpContext.Session.GetString("Otp");
-
-            if (sessionOtp == otp)
-            {
-                var otpTimeStr = HttpContext.Session.GetString("OtpTime");
-                if (!string.IsNullOrEmpty(otpTimeStr))
-                {
-                    DateTime otpTime = DateTime.Parse(otpTimeStr);
-                    DateTime otpExpirationTime = otpTime.AddMinutes(2); // OTP hết hạn sau 2 phút
-
-                    if (DateTime.Now > otpExpirationTime)
-                    {
-                        HttpContext.Session.Remove("Otp");
-                        HttpContext.Session.Remove("Email");
-                        HttpContext.Session.Remove("OtpTime");
-
-                        return Json(new { success = false, message = "OTP đã hết hạn. Vui lòng gửi lại mã OTP mới." });
-                    }
-                }
-                else
-                {
-                    HttpContext.Session.Remove("Otp");
-                    HttpContext.Session.Remove("Email");
-                    HttpContext.Session.Remove("OtpTime");
-
-                    return Json(new { success = false, message = "Không tìm thấy thông tin OTP trước đó." });
-                }
-
-                // Gọi API lấy thông tin user theo email
-                var httpClient = _httpClientFactory.CreateClient();
-                var apiUrl = $"https://localhost:7202/api/User/by-email/{email}";  // API của bạn
-                var response = await httpClient.GetAsync(apiUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    var user = JsonConvert.DeserializeObject<User>(jsonResponse);
-
-                    if (user != null)
-                    {
-                        user.Role = 1; // Cập nhật trạng thái active
-
-                        // Cập nhật trạng thái user qua API
-                        var updateResponse = await httpClient.PutAsJsonAsync("https://localhost:7202/api/User/updateStatus", user);
-
-                        if (updateResponse.IsSuccessStatusCode)
-                        {
-                            HttpContext.Session.Remove("Otp");
-                            HttpContext.Session.Remove("Email");
-                            HttpContext.Session.Remove("OtpTime");
-
-                            if (user.Role == 3)
-                            {
-                                return Json(new { success = true, message = "Đăng ký thành công! Chuyển hướng đến trang chờ phê duyệt...", redirectUrl = Url.Action("WaitApprove", "Home") });
-                            }
-                            else
-                            {
-                                return Json(new { success = true, message = "Đăng ký thành công! Chuyển hướng đến trang đăng nhập...", redirectUrl = Url.Action("Login", "Home") });
-                            }
-                        }
-                    }
-                }
-
-                return Json(new { success = false, message = "Không tìm thấy người dùng với email này." });
+                return RedirectToAction(nameof(Login));
             }
 
-            return Json(new { success = false, message = "Mã OTP không đúng." });
-        }
+            var claims = authenticateResult.Principal.Identities
+                .FirstOrDefault()?.Claims.ToList();
 
+            var emailClaim = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var firstName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value ?? "";
+            var lastName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value ?? "";
 
+            if (string.IsNullOrEmpty(emailClaim))
+            {
+                return RedirectToAction(nameof(Login));
+            }
 
-        [HttpPost]
-        public async Task<IActionResult> ResendOtp(string email)
-        {
+            // Gọi API Auth/google-login
             var httpClient = _httpClientFactory.CreateClient();
-            var response = await httpClient.GetAsync($"https://localhost:7202/api/User/by-email/{email}");
+            var apiBaseUrl = "https://localhost:7202/api/Auth";
+            var request = new
+            {
+                Email = emailClaim,
+                FirstName = firstName,
+                LastName = lastName
+            };
+
+            var jsonContent = JsonConvert.SerializeObject(request);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync($"{apiBaseUrl}/google-login", content);
 
             if (response.IsSuccessStatusCode)
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                var user = JsonConvert.DeserializeObject<User>(jsonResponse);
-
-                if (user == null)
+                var result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if (result.success == true)
                 {
-                    return Json(new { success = false, message = "Email does not exist." });
+                    var user = result.user.ToObject<User>();
+
+                    HttpContext.Session.Remove("customerInfo");
+                    Microsoft.AspNetCore.Http.SessionExtensions.SetString(HttpContext.Session, "Username", user.Username); // Gọi tĩnh
+                    Microsoft.AspNetCore.Http.SessionExtensions.SetInt32(HttpContext.Session, "UserId", user.UserID); // Đã sửa trước
+                    string userDataJson = JsonConvert.SerializeObject(user);
+                    Microsoft.AspNetCore.Http.SessionExtensions.SetString(HttpContext.Session, "customerInfo", userDataJson); // Gọi tĩnh
+
+                    if (user.Role == 1)
+                    {
+                        return RedirectToAction("Index", "Users");
+                    }
+                    else if (user.Role == 3)
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
                 }
-
-                // Tạo OTP mới
-                string otp = GenerateOTP();
-
-                // Gửi OTP mới qua email
-                await SendOTPEmailAsync(email, otp);
-
-                // Lưu OTP mới vào session
-                HttpContext.Session.SetString("Otp", otp);
-                HttpContext.Session.SetString("OtpTime", DateTime.Now.ToString());
-
-                return Json(new { success = true, message = "New OTP code has been sent." });
             }
 
-            return Json(new { success = false, message = "Failed to fetch user data from API." });
+            return RedirectToAction(nameof(Login));
         }
 
-        [HttpGet("ForgotPassword")]
-        public IActionResult ForgotPassword()
-        {
-            return View();
-        }
-
-        // POST: Register/ForgotPassword
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        //public async Task<IActionResult> ForgotPassword(string email)
-        //{
-        //    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        //    if (user == null)
-        //    {
-        //        ModelState.AddModelError("Email", "Email không tồn tại trong hệ thống.");
-        //        return View();
-        //    }
-
-        //    string otp = GenerateOTP();
-        //    await SendOTPEmailAsync(email, otp);
-
-        //    HttpContext.Session.SetString("Otp", otp);
-        //    HttpContext.Session.SetString("Email", user.Email);
-        //    Console.WriteLine($"Saved to session - Email: '{user.Email}', OTP: '{otp}'");
-
-        //    return RedirectToAction("VerifyOtpForPasswordReset");
-        //}
-
-        //[HttpGet("VerifyOtpForPasswordReset")]
-        //public IActionResult VerifyOtpForPasswordReset()
-        //{
-        //    var email = HttpContext.Session.GetString("Email");
-        //    ViewBag.Email = email;
-        //    return View();
-        //}
-
-        //// POST: Register/VerifyOtpForPasswordReset
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> VerifyOtpForPasswordReset(string email, string otp)
-        //{
-        //    var sessionOtp = HttpContext.Session.GetString("Otp")?.Trim();
-        //    var sessionEmail = HttpContext.Session.GetString("Email")?.Trim();
-        //    otp = otp?.Trim();
-
-        //    Console.WriteLine($"Session Email: '{sessionEmail}', Form Email: '{email}', Session OTP: '{sessionOtp}', Input OTP: '{otp}'");
-
-        //    if (string.IsNullOrEmpty(sessionOtp) || string.IsNullOrEmpty(sessionEmail))
-        //    {
-        //        ModelState.AddModelError("Otp", "Phiên OTP không hợp lệ. Vui lòng thử lại từ bước quên mật khẩu.");
-        //        ViewBag.Email = sessionEmail ?? email; // Gán lại ViewBag.Email
-        //        return View();
-        //    }
-
-        //    if (!string.Equals(sessionEmail, email, StringComparison.OrdinalIgnoreCase))
-        //    {
-        //        ModelState.AddModelError("Otp", "Email không khớp với phiên hiện tại.");
-        //        ViewBag.Email = sessionEmail; // Gán lại ViewBag.Email
-        //        return View();
-        //    }
-
-        //    if (string.Equals(sessionOtp, otp))
-        //    {
-        //        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == sessionEmail);
-        //        if (user == null)
-        //        {
-        //            ModelState.AddModelError("Otp", "Không tìm thấy người dùng với email này.");
-        //            ViewBag.Email = sessionEmail; // Gán lại ViewBag.Email
-        //            return View();
-        //        }
-
-        //        HttpContext.Session.Remove("Otp");
-        //        HttpContext.Session.Remove("Email");
-        //        return RedirectToAction("ResetPassword", new { email = user.Email });
-        //    }
-
-        //    ModelState.AddModelError("Otp", "OTP không chính xác.");
-        //    ViewBag.Email = sessionEmail; // Gán lại ViewBag.Email
-        //    return View();
-        //}
-
-        // GET: Register/ResetPassword
-        [HttpGet("ResetPassword")]
-        public IActionResult ResetPassword(string email)
-        {
-            ViewBag.Email = email;
-            return View();
-        }
-
-        // POST: Register/ResetPassword
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        //public async Task<IActionResult> ResetPassword(string email, string newPassword, string confirmPassword)
-        //{
-        //    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    if (newPassword != confirmPassword)
-        //    {
-        //        ModelState.AddModelError("ConfirmPassword", "Mật khẩu xác nhận không khớp.");
-        //        return View();
-        //    }
-
-        //    // Hash the new password
-        //    user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
-
-        //    // Save changes to the database
-        //    await _context.SaveChangesAsync();
-
-        //    return Redirect("/User/Login");
 
 
-        //}
 
+        [HttpGet("profile")]
         public async Task<IActionResult> Profile()
         {
             // Lấy thông tin user từ session
@@ -490,7 +192,7 @@ namespace BookStore_Client.Controllers
             // Nếu không lấy được từ API, dùng dữ liệu từ session
             return View(user);
         }
-
+        [HttpGet("edit-profile/{email}")]
         public async Task<IActionResult> EditProfile(string email)
         {
             // Lấy thông tin user từ session
@@ -523,7 +225,7 @@ namespace BookStore_Client.Controllers
             return View(user); // Dùng dữ liệu từ session nếu API không hoạt động
         }
 
-        [HttpPost]
+        [HttpPost("edit-profile")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditProfile(User updatedUser, IFormFile ImageFile)
         {

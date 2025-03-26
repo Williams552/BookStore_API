@@ -1,0 +1,170 @@
+﻿@model string
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xác nhận OTP</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 400px;
+            max-width: 100%;
+            color: black;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #764ba2;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #764ba2;
+            border: none;
+        }
+
+        #countdown {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: red;
+        }
+
+        #resendOtp {
+            margin-top: 10px;
+            background-color: #28a745;
+            border: none;
+        }
+
+            #resendOtp:disabled {
+                background-color: gray;
+            }
+
+        #message {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Xác nhận OTP</h2>
+        <p>Chúng tôi đã gửi mã OTP đến email: @ViewBag.Email. Vui lòng nhập mã để hoàn tất đăng ký.</p>
+        <p id="countdown">Time left: 02:00</p>
+        <div id="message"></div>
+
+        <form id="otpForm" method="post">
+            @Html.AntiForgeryToken() <!-- Đảm bảo có token -->
+            <input type="hidden" name="email" value="@ViewBag.Email" id="emailInput" />
+            <div class="form-group">
+                <label for="otp" class="control-label">Enter OTP</label>
+                <input name="otp" class="form-control" id="otpInput" required />
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="verifyBtn">Xác nhận</button>
+        </form>
+
+        <button id="resendOtp" class="btn btn-success btn-block" disabled>Resend OTP</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let timeLeft = 120; // 2 phút
+        let countdownElement = document.getElementById("countdown");
+        let verifyButton = document.getElementById("verifyBtn");
+        let resendOtpButton = document.getElementById("resendOtp");
+        let timer;
+
+        function startCountdown(seconds) {
+            timeLeft = seconds;
+            clearInterval(timer);
+            timer = setInterval(function () {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                countdownElement.textContent = `Time left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    countdownElement.textContent = "OTP expired!";
+                    verifyButton.disabled = true;
+                    resendOtpButton.disabled = false;
+                }
+                timeLeft--;
+            }, 1000);
+        }
+
+        startCountdown(120);
+
+        $("#otpForm").submit(function (e) {
+            e.preventDefault();
+            var otp = $("#otpInput").val();
+            var email = $("#emailInput").val();
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            console.log("Submitting: Email=" + email + ", OTP=" + otp + ", Token=" + token);
+
+            $.ajax({
+                url: '@Url.Action("ConfirmOtp", "Auth")',
+                type: 'POST',
+                data: { email: email, otp: otp, __RequestVerificationToken: token },
+                success: function (response) {
+                    console.log("Success: " + JSON.stringify(response));
+                    if (response.success) {
+                        $("#message").html('<div class="alert alert-success">' + response.message + '</div>');
+                        setTimeout(function () { window.location.href = response.redirectUrl; }, 2000);
+                    } else {
+                        $("#message").html('<div class="alert alert-danger">' + response.message + '</div>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log("AJAX Error: " + status + " - " + error);
+                    console.log("Response Text: " + xhr.responseText);
+                    $("#message").html('<div class="alert alert-danger">Có lỗi xảy ra: ' + (xhr.responseText || error) + '</div>');
+                }
+            });
+        });
+
+        $("#resendOtp").click(function () {
+            let email = $("#emailInput").val();
+            $(this).prop("disabled", true);
+
+            $.ajax({
+                url: '@Url.Action("ResendOtp", "Auth")', // Sửa thành Auth
+                type: "POST",
+                data: { email: email },
+                success: function (response) {
+                    if (response.success) {
+                        $("#message").html('<div class="alert alert-success">' + response.message + '</div>');
+                        startCountdown(120);
+                        verifyButton.disabled = false;
+                    } else {
+                        $("#message").html('<div class="alert alert-danger">' + response.message + '</div>');
+                        resendOtpButton.disabled = false;
+                    }
+                },
+                error: function () {
+                    $("#message").html('<div class="alert alert-danger">Error resending OTP. Please try again.</div>');
+                    resendOtpButton.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

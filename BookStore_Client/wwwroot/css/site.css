@@ -87,3 +87,12 @@ body {
     /*    background-color: #ff0000;*/
     color: #ff0000;
 }
+}
+
+.search-icon {
+    transition: opacity 0.3s ease;
+}
+
+    .search-icon.hidden {
+        opacity: 0;
+    }
