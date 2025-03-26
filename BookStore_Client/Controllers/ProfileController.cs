@@ -1,13 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using System.Text.Json;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
-using BookStore_Client.Models;
-using BookStore_API.Domain.DTO;
-using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
-using BookStore_Client.Domain.DTO;
+using System.ComponentModel.DataAnnotations;
 
 namespace BookStore_Client.Controllers
 {
@@ -16,8 +12,7 @@ namespace BookStore_Client.Controllers
     {
         private readonly string _apiBaseUrl = "https://localhost:7202/api/User";
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly HttpClient _httpClient;
+        private readonly string _apiBaseUrl = "https://localhost:7202/api/User";
 
         public ProfileController(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, HttpClient httpClient)
         {
@@ -31,129 +26,26 @@ namespace BookStore_Client.Controllers
         [HttpGet("profile")]
         public async Task<IActionResult> Profile()
         {
-            var userDataJson = HttpContext.Session.GetString("customerInfo");
-            if (string.IsNullOrEmpty(userDataJson) && string.IsNullOrEmpty(HttpContext.Session.GetString("JWTToken")))
-            {
-                return RedirectToAction("Login", "User");
-            }
-
-            User user;
-            if (!string.IsNullOrEmpty(userDataJson))
-            {
-                user = JsonConvert.DeserializeObject<User>(userDataJson);
-            }
-            else
-            {
-                var token = HttpContext.Session.GetString("JWTToken");
-                var userInfo = UserController.DecodeJwtToken(token); // Gọi phương thức tĩnh từ UserController
-                user = new User
+            var client = _httpClientFactory.CreateClient();
+            try
+            try
+                int userId = HttpContext.Session.GetInt32("UserId") ?? 1; // Lấy từ session thay vì cố định
+                var response = await client.GetAsync($"{_apiBaseUrl}/{userId}");
+                var response = await client.GetAsync($"{_apiBaseUrl}/{userId}");
+                if (response.IsSuccessStatusCode)
                 {
-                    UserID = Convert.ToInt32(userInfo.GetValueOrDefault(System.Security.Claims.ClaimTypes.NameIdentifier)),
-                    Username = HttpContext.Session.GetString("Username"),
-                    Email = Convert.ToString(userInfo.GetValueOrDefault(System.Security.Claims.ClaimTypes.Email)),
-                    Role = HttpContext.Session.GetInt32("Role").GetValueOrDefault()
-                };
-            }
-
-            var httpClient = _httpClientFactory.CreateClient();
-            var apiUrl = $"{_apiBaseUrl}/by-email/{user.Email}";
-            var response = await httpClient.GetAsync(apiUrl);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var updatedUser = JsonConvert.DeserializeObject<User>(jsonResponse);
-                HttpContext.Session.SetString("customerInfo", JsonConvert.SerializeObject(updatedUser));
-                return View(updatedUser);
-            }
-
-            return View(user);
-        }
-
-        [HttpGet("edit-profile/{userId}")]
-        public async Task<IActionResult> EditProfile(int userId)
-        {
-            var userDataJson = HttpContext.Session.GetString("customerInfo");
-            if (string.IsNullOrEmpty(userDataJson))
-            {
-                return RedirectToAction("Login", "User");
-            }
-
-            var user = JsonConvert.DeserializeObject<User>(userDataJson);
-
-            if (user.UserID != userId)
-            {
-                return Unauthorized("You can only edit your own profile.");
-            }
-
-            var httpClient = _httpClientFactory.CreateClient();
-            var apiUrl = $"{_apiBaseUrl}/{userId}";
-            var response = await httpClient.GetAsync(apiUrl);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var updatedUser = JsonConvert.DeserializeObject<User>(jsonResponse);
-                return View(updatedUser);
-            }
-
-            return View(user);
-        }
-
-        [HttpPost("edit-profile")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfile(User updatedUser, IFormFile ImageFile)
-        {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                foreach (var error in errors)
-                {
-                    Console.WriteLine($"Validation Error: {error}");
-                }
-                return View(updatedUser);
-            }
-
-            var userDataJson = HttpContext.Session.GetString("customerInfo");
-            if (string.IsNullOrEmpty(userDataJson))
-            {
-                return RedirectToAction("Login", "User");
-            }
-
-            var currentUser = JsonConvert.DeserializeObject<User>(userDataJson);
-            if (currentUser.UserID != updatedUser.UserID)
-            {
-                return Unauthorized("You can only edit your own profile.");
-            }
-
-            string imageUrl = updatedUser.ImageUrl ?? string.Empty;
-            if (ImageFile != null && ImageFile.Length > 0)
-            {
-                if (ImageFile.Length > 5 * 1024 * 1024)
-                {
-                    ModelState.AddModelError("ImageFile", "File size must be less than 5MB.");
-                    return View(updatedUser);
-                }
-
-                if (!ImageFile.ContentType.StartsWith("image/"))
-                {
-                    ModelState.AddModelError("ImageFile", "Please upload a valid image file.");
-                    return View(updatedUser);
-                }
-
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                if (!string.IsNullOrEmpty(updatedUser.ImageUrl))
-                {
-                    var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", updatedUser.ImageUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(oldFilePath))
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var user = JsonSerializer.Deserialize<User>(jsonString, new JsonSerializerOptions
                     {
-                        System.IO.File.Delete(oldFilePath);
-                    }
+                        PropertyNameCaseInsensitive = true
+                    });
+                    return View(user);
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    ViewBag.ErrorMessage = $"User with ID {userId} not found.";
+                    return View();
+                    return View();
                 }
 
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
@@ -196,12 +88,115 @@ namespace BookStore_Client.Controllers
                 HttpContext.Session.SetString("Username", updatedUser.Username ?? updatedUser.FullName);
 
                 return RedirectToAction("Profile");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChangePassword()
+        {
+            var client = _httpClientFactory.CreateClient();
+            try
+            {
+                int userId = HttpContext.Session.GetInt32("UserId") ?? 1; // Lấy từ session
+                var response = await client.GetAsync($"{_apiBaseUrl}/{userId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var user = JsonSerializer.Deserialize<User>(jsonString, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    // Truyền thông tin user qua ViewBag
+                    ViewBag.UserImageUrl = user.ImageUrl;
+                    ViewBag.UserFullName = user.FullName;
+                    ViewBag.UserEmail = user.Email;
+                }
+                else
+                {
+                    ViewBag.UserImageUrl = null;
+                    ViewBag.UserFullName = "N/A";
+                    ViewBag.UserEmail = "N/A";
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.UserImageUrsl = null;
+                ViewBag.UserFullName = "N/A";
+                ViewBag.UserEmail = "N/A";
             }
 
-            var errorContent = await response.Content.ReadAsStringAsync();
-            ModelState.AddModelError("", $"Failed to update profile: {errorContent}");
-            Console.WriteLine($"API Error: {errorContent}");
-            return View(updatedUser);
+            return View(new ChangePasswordViewModel());
+            }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                ModelState.AddModelError("ConfirmPassword", "Mật khẩu xác nhận không khớp với mật khẩu mới.");
+                return View(model);
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            try
+            {
+                int userId = HttpContext.Session.GetInt32("UserId") ?? 1; // Lấy từ session thay vì cố định
+                var request = new
+                {
+                    OldPassword = model.OldPassword,
+                    NewPassword = model.NewPassword,
+                    ConfirmPassword = model.ConfirmPassword
+                };
+
+                var jsonContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync($"{_apiBaseUrl}/{userId}/change-password", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["SuccessMessage"] = "Đổi mật khẩu thành công.";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    var error = JsonSerializer.Deserialize<ErrorResponse>(errorContent);
+                    ModelState.AddModelError(string.Empty, error?.Message ?? "Đã xảy ra lỗi khi đổi mật khẩu.");
+                    return View(model);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Lỗi: {ex.Message}");
+                return View(model);
+            }
+        }
+    }
+
+    // ViewModel cho đổi mật khẩu
+    public class ChangePasswordViewModel
+    {
+        [Required(ErrorMessage = "Mật khẩu cũ là bắt buộc.")]
+        public string OldPassword { get; set; }
+
+        [Required(ErrorMessage = "Mật khẩu mới là bắt buộc.")]
+        [MinLength(5, ErrorMessage = "Mật khẩu mới phải có ít nhất 5 ký tự.")]
+        public string NewPassword { get; set; }
+
+        [Required(ErrorMessage = "Xác nhận mật khẩu là bắt buộc.")]
+        [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp với mật khẩu mới.")]
+        public string ConfirmPassword { get; set; }
+    }
+
+    // DTO cho phản hồi lỗi từ API
+    public class ErrorResponse
+    {
+        public string Message { get; set; }
     }
 }
