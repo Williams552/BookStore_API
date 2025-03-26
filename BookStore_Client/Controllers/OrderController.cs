@@ -10,6 +10,7 @@ using BookStore_Client.Domain.DTO;
 using System.Text.Json;
 using System.Text;
 using BookStore_Client.Domain.DTO;
+using BookStore_Client.DTOs;
 
 
 
@@ -283,19 +284,90 @@ namespace BookStore_Client.Controllers
                 return Json(new { success = false, message = "Tạo đơn hàng thất bại." });
             }
 
-            // Xóa giỏ hàng sau khi đặt hàng thành công
-            var deleteCartResponse = await _httpClient.DeleteAsync($"{_cartApiUrl}/DeleteCartByUser/{userId}");
-            if (!deleteCartResponse.IsSuccessStatusCode)
+            if (paymentMethod == 2)
             {
-                // Xử lý lỗi nếu cần
+                var createdOrder = await orderResponse.Content.ReadFromJsonAsync<Order>();
+                var vnPayModel = new PaymentInformationDTO
+                {
+                    OrderType = "Pay",
+                    Amount = (int)createdOrder.TotalAmount*1000,
+                    OrderDescription = createdOrder.OrderID.ToString()
+                };
+
+                // Gọi API VNPay
+                var vnPayResponse = await _httpClient.PostAsJsonAsync(
+                    "https://localhost:7218/api/VNPayment/CreatePayment",
+                    vnPayModel);
+
+                var responseContent = await vnPayResponse.Content.ReadAsStringAsync();
+                var paymentUrl = GetValidPaymentUrl(responseContent);
+
+                return Redirect(paymentUrl);
             }
 
-            return Json(new { success = true, message = "Đặt hàng thành công!" });
+            await _httpClient.DeleteAsync($"{_apiUrl}/DeleteCartByUser/{userId}");
             return RedirectToAction("HistoryOrder");
         }
 
+        public static string GetValidPaymentUrl(string rawPaymentUrl)
+        {
+            try
+            {
+                // Bước 1: Loại bỏ dấu ngoặc kép không mong muốn
+                var cleanedUrl = rawPaymentUrl.Trim('"', '\'', ' ');
 
-    [HttpGet]
+                // Bước 2: Thử parse JSON nếu response là JSON object
+                if (TryParseJsonUrl(cleanedUrl, out string jsonUrl))
+                {
+                    cleanedUrl = jsonUrl;
+                }
+
+                // Bước 3: Chuẩn hóa URL
+                if (Uri.TryCreate(cleanedUrl, UriKind.Absolute, out Uri uriResult))
+                {
+                    // Bước 4: Đảm bảo URL sử dụng HTTPS
+                    if (!uriResult.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return new UriBuilder(uriResult) { Scheme = "https", Port = -1 }.Uri.ToString();
+                    }
+                    return uriResult.AbsoluteUri;
+                }
+
+                // Bước 5: Thử sửa định dạng nếu URL thiếu scheme
+                if (Uri.TryCreate($"https://{cleanedUrl}", UriKind.Absolute, out uriResult))
+                {
+                    return uriResult.AbsoluteUri;
+                }
+
+                throw new UriFormatException("Invalid URL format");
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi và logging
+                throw new ArgumentException("Failed to process payment URL", ex);
+            }
+        }
+
+        private static bool TryParseJsonUrl(string input, out string url)
+        {
+            url = null;
+            try
+            {
+                var jsonDict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(input);
+                if (jsonDict != null && jsonDict.TryGetValue("url", out var parsedUrl))
+                {
+                    url = parsedUrl;
+                    return true;
+                }
+            }
+            catch
+            {
+                // Không phải JSON format
+            }
+            return false;
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Earnings(int? year, int? month)
         {
             _logger.LogInformation("Starting Earnings action to fetch earnings data.");
@@ -378,5 +450,5 @@ namespace BookStore_Client.Controllers
                 return View(new EarningsDTO { MonthlyEarningsAfterFee = 0, TotalSales = 0 });
             }
         }
-    } 
+    }
 }
