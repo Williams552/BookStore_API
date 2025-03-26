@@ -24,7 +24,7 @@ namespace Orders_API.Controllers
             _mapperService = mapperService;
             _orderService = orderService;
             _httpClient = httpClient.CreateClient();
-            _httpClient.BaseAddress = new Uri("https://localhost:7202/api/Book/");
+            _httpClient.BaseAddress = new Uri("https://localhost:7202/api/");
         }
 
         // GET: api/order
