@@ -13,13 +13,8 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using BookStore_Client.Domain.DTO;
 using BookStore_Client.Models.ViewModel;
-
-using System.Text;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authorization;
-using BookStore_Client.Domain.DTO;
 using Microsoft.Extensions.Logging;
-
 
 namespace BookStore_Client.Controllers
 {
@@ -32,6 +27,7 @@ namespace BookStore_Client.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<UserController> _logger;
+
         public UserController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, HttpClient httpClient, ILogger<UserController> logger)
         {
             _httpClient = httpClient ?? new HttpClient();
@@ -390,9 +386,17 @@ namespace BookStore_Client.Controllers
             return View(editModel);
         }
 
-        // GET: User/Index
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
+            // Kiểm tra quyền truy cập
+            var redirectResult = CheckAdminAccess();
+            if (redirectResult != null)
+            {
+                return redirectResult;
+            }
+
+            // Logic hiển thị danh sách người dùng (dành cho admin)
             var client = _httpClientFactory.CreateClient();
             try
             {
@@ -421,7 +425,6 @@ namespace BookStore_Client.Controllers
             }
         }
 
-        // POST: User/Block/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Block(int id)
@@ -459,20 +462,6 @@ namespace BookStore_Client.Controllers
             }
 
             return RedirectToAction(nameof(Index));
-        }
-
-        // Thêm kiểm tra quyền truy cập cho các action khác trong UserController
-        [HttpGet]
-        public IActionResult Index()
-        {
-            var redirectResult = CheckAdminAccess();
-            if (redirectResult != null)
-            {
-                return redirectResult;
-            }
-
-            // Logic hiển thị danh sách người dùng (dành cho admin)
-            return View();
         }
     }
 }
