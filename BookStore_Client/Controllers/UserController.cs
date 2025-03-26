@@ -645,7 +645,7 @@ namespace BookStore_Client.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear(); // Xóa toàn bộ session
-            return RedirectToAction("Login", "User");
+            return RedirectToAction("Index", "Home");
         }
     }
 }
