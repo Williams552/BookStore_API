@@ -282,5 +282,42 @@ namespace BookStore_API.Controllers
             };
             await smtp.SendMailAsync(message);
         }
+
+        // Trong BookStore_API.Controllers.UserController
+        [HttpPost("{id}/change-password")]
+        public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await _userRepository.GetById(id);
+            if (user == null)
+            {
+                return NotFound(new { Message = $"User with ID {id} not found." });
+            }
+
+            // Kiểm tra mật khẩu cũ
+            if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.Password))
+            {
+                return BadRequest(new { Message = "Mật khẩu cũ không đúng." });
+            }
+
+            // Cập nhật mật khẩu mới
+            user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            user.UpdateAt = DateOnly.FromDateTime(DateTime.Now);
+            await _userRepository.Update(user);
+
+            return Ok(new { Message = "Đổi mật khẩu thành công." });
+        }
+
+        // DTO cho yêu cầu đổi mật khẩu
+        public class ChangePasswordRequest
+        {
+            public string OldPassword { get; set; }
+            public string NewPassword { get; set; }
+            public string ConfirmPassword { get; set; }
+        }
     }
 }

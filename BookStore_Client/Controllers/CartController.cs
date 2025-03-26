@@ -10,7 +10,7 @@ namespace BookStore_Client.Controllers
     {
 
         private readonly HttpClient _httpClient;
-        private readonly string _apiUrl = "http://localhost:7202/api/Cart";
+        private readonly string _apiUrl = "https://localhost:7202/api/Cart";
 
         public CartController(HttpClient httpClient)
         {
