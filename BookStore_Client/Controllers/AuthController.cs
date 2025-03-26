@@ -377,7 +377,7 @@ namespace BookStore_Client.Controllers
 
                 var errorContent = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"Error Response from API: {errorContent}");
-                ModelState.AddModelError("", $"Đăng ký thất bại: {errorContent}");
+                ModelState.AddModelError("", $"Đăng ký thất bại");
                 return View(model);
             }
             catch (HttpRequestException ex)

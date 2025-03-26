@@ -69,13 +69,15 @@ namespace BookStore_Client.Controllers
                         if (userResponse.IsSuccessStatusCode)
                         {
                             var userData = await userResponse.Content.ReadAsStringAsync();
+                            _logger.LogDebug("User API response: {UserData}", userData); // Ghi log dữ liệu trả về
                             var user = JsonConvert.DeserializeObject<User>(userData);
                             userFullName = user?.FullName ?? "Unknown";
                             _logger.LogDebug("User FullName fetched: {FullName}", userFullName);
                         }
                         else
                         {
-                            _logger.LogWarning("Failed to fetch user info for UserID: {UserID}. Status: {StatusCode}", order.UserID, userResponse.StatusCode);
+                            var errorContent = await userResponse.Content.ReadAsStringAsync();
+                            _logger.LogWarning("Failed to fetch user info for UserID: {UserID}. Status: {StatusCode}. Error: {Error}", order.UserID, userResponse.StatusCode, errorContent);
                         }
                     }
 

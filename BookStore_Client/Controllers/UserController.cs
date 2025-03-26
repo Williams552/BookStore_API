@@ -1,8 +1,6 @@
-﻿
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Net.Mail;
 using System.Net;
@@ -11,15 +9,8 @@ using Microsoft.AspNetCore.Authentication.Google;
 using BookStore_Client.Models;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
-using NuGet.Common;
 using System.Net.Http.Headers;
-using BookStore_API.Domain.DTO;
-using System.Net.Http;
 using System.Text.Json;
-using System.Text;
-using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Authorization;
-using BookStore_Client.Domain.DTO;
 
 namespace BookStore_Client.Controllers
 {
@@ -27,21 +18,25 @@ namespace BookStore_Client.Controllers
     [ApiController]
     public class UserController : Controller
     {
-        private readonly string _apiBaseUrl = "";
-        //private readonly BookStoreContext _context;
-        private readonly HttpClient _httpClient = null;
+        private readonly string _apiBaseUrl = "https://localhost:7202/api/User";
+        private readonly HttpClient _httpClient;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UserController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, HttpClient httpClient)
         {
-            _apiBaseUrl = "https://localhost:7202/api/User";
-            // _context = context;
-            _httpClient = new HttpClient();
+            _httpClient = httpClient ?? new HttpClient();
             _httpClientFactory = httpClientFactory;
             _httpContextAccessor = httpContextAccessor;
             var contentType = new MediaTypeWithQualityHeaderValue("application/json");
             _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
+        }
+
+        public static Dictionary<string, string> DecodeJwtToken(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            return jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
         }
 
         [HttpGet("login")]
@@ -61,31 +56,34 @@ namespace BookStore_Client.Controllers
             try
             {
                 var requestUrl = $"{_apiBaseUrl}/login?username={user.Username}&password={user.Password}";
-                var content = new StringContent("", System.Text.Encoding.UTF8, "application/json");
+                var content = new StringContent("", Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(requestUrl, content);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    HttpContext.Session.SetString("Username", user.Username);
-                    HttpContext.Session.SetInt32("UserID", user.UserID);
                     var json = await response.Content.ReadAsStringAsync();
-                    var result = System.Text.Json.JsonSerializer.Deserialize<User>(json, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
+                    var jsonObject = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(json);
+                    string token = jsonObject.GetProperty("token").GetString();
+                    HttpContext.Session.SetString("JWTToken", token);
+                    var userInfo = DecodeJwtToken(token);
+                    int userId = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.NameIdentifier));
+                    int role = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.Role));
+                    string email = Convert.ToString(userInfo.GetValueOrDefault(ClaimTypes.Email));
+                    HttpContext.Session.SetString("Username", user.Username);
+                    HttpContext.Session.SetString("Email", email);
+                    HttpContext.Session.SetInt32("UserId", userId);
+                    HttpContext.Session.SetInt32("Role", role);
                     return RedirectToAction("Index", "Home");
                 }
                 ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng!");
-                return View(user);
+                return RedirectToAction("Login", "User");
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, $"Tài khoản hoặc mật khẩu không đúng!");
-                return View(user);
+                return RedirectToAction("Login", "User");
             }
         }
-
-
 
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
@@ -116,7 +114,6 @@ namespace BookStore_Client.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            // Gọi API Auth/google-login
             var httpClient = _httpClientFactory.CreateClient();
             var apiBaseUrl = "https://localhost:7202/api/Auth";
             var request = new
@@ -139,10 +136,10 @@ namespace BookStore_Client.Controllers
                     var user = result.user.ToObject<User>();
 
                     HttpContext.Session.Remove("customerInfo");
-                    Microsoft.AspNetCore.Http.SessionExtensions.SetString(HttpContext.Session, "Username", user.Username); // Gọi tĩnh
-                    Microsoft.AspNetCore.Http.SessionExtensions.SetInt32(HttpContext.Session, "UserId", user.UserID); // Đã sửa trước
+                    Microsoft.AspNetCore.Http.SessionExtensions.SetString(HttpContext.Session, "Username", user.Username);
+                    Microsoft.AspNetCore.Http.SessionExtensions.SetInt32(HttpContext.Session, "UserId", user.UserID);
                     string userDataJson = JsonConvert.SerializeObject(user);
-                    Microsoft.AspNetCore.Http.SessionExtensions.SetString(HttpContext.Session, "customerInfo", userDataJson); // Gọi tĩnh
+                    Microsoft.AspNetCore.Http.SessionExtensions.SetString(HttpContext.Session, "customerInfo", userDataJson);
 
                     if (user.Role == 1)
                     {
@@ -158,196 +155,11 @@ namespace BookStore_Client.Controllers
             return RedirectToAction(nameof(Login));
         }
 
-
-
-
-        [HttpGet("profile")]
-        public async Task<IActionResult> Profile()
-        {
-            // Lấy thông tin user từ session
-            var userDataJson = HttpContext.Session.GetString("customerInfo");
-            if (string.IsNullOrEmpty(userDataJson))
-            {
-                // Nếu chưa đăng nhập, chuyển hướng về trang login
-                return RedirectToAction("Login", "User");
-            }
-
-            var user = JsonConvert.DeserializeObject<User>(userDataJson);
-
-            // Gọi API để lấy thông tin user mới nhất từ DB
-            var httpClient = _httpClientFactory.CreateClient();
-            var apiUrl = $"https://localhost:7202/api/User/by-email/{user.Email}";
-            var response = await httpClient.GetAsync(apiUrl);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var updatedUser = JsonConvert.DeserializeObject<User>(jsonResponse);
-
-                // Cập nhật lại session với thông tin mới nhất
-                HttpContext.Session.SetString("customerInfo", JsonConvert.SerializeObject(updatedUser));
-                return View(updatedUser); // Trả về view với thông tin user
-            }
-
-            // Nếu không lấy được từ API, dùng dữ liệu từ session
-            return View(user);
-        }
-        [HttpGet("edit-profile/{email}")]
-        public async Task<IActionResult> EditProfile(string email)
-        {
-            // Lấy thông tin user từ session
-            var userDataJson = HttpContext.Session.GetString("customerInfo");
-            if (string.IsNullOrEmpty(userDataJson))
-            {
-                return RedirectToAction("Login", "User");
-            }
-
-            var user = JsonConvert.DeserializeObject<User>(userDataJson);
-
-            // Kiểm tra email từ route có khớp với user trong session không
-            if (user.Email != email)
-            {
-                return Unauthorized("You can only edit your own profile.");
-            }
-
-            // Gọi API để lấy thông tin mới nhất
-            var httpClient = _httpClientFactory.CreateClient();
-            var apiUrl = $"https://localhost:7202/api/User/by-email/{email}";
-            var response = await httpClient.GetAsync(apiUrl);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var updatedUser = JsonConvert.DeserializeObject<User>(jsonResponse);
-                return View(updatedUser); // Trả về view với thông tin user
-            }
-
-            return View(user); // Dùng dữ liệu từ session nếu API không hoạt động
-        }
-
-        [HttpPost("edit-profile")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfile(User updatedUser, IFormFile ImageFile)
-        {
-            if (!ModelState.IsValid)
-            {
-                // Log các lỗi validation
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                foreach (var error in errors)
-                {
-                    Console.WriteLine($"Validation Error: {error}");
-                }
-                return View(updatedUser); // Trả lại form nếu dữ liệu không hợp lệ
-            }
-
-            // Lấy thông tin user từ session để kiểm tra quyền
-            var userDataJson = HttpContext.Session.GetString("customerInfo");
-            if (string.IsNullOrEmpty(userDataJson))
-            {
-                return RedirectToAction("Login", "User");
-            }
-
-            var currentUser = JsonConvert.DeserializeObject<User>(userDataJson);
-            if (currentUser.Email != updatedUser.Email)
-            {
-                return Unauthorized("You can only edit your own profile.");
-            }
-
-            // Xử lý upload ảnh nếu có
-            string imageUrl = updatedUser.ImageUrl ?? string.Empty; // Đảm bảo không null
-            if (ImageFile != null && ImageFile.Length > 0)
-            {
-                // Kiểm tra kích thước file (giới hạn 5MB)
-                if (ImageFile.Length > 5 * 1024 * 1024)
-                {
-                    ModelState.AddModelError("ImageFile", "File size must be less than 5MB.");
-                    return View(updatedUser);
-                }
-
-                // Kiểm tra loại file (chỉ cho phép ảnh)
-                if (!ImageFile.ContentType.StartsWith("image/"))
-                {
-                    ModelState.AddModelError("ImageFile", "Please upload a valid image file.");
-                    return View(updatedUser);
-                }
-
-                // Định nghĩa thư mục lưu ảnh
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                // Xóa ảnh cũ nếu có
-                if (!string.IsNullOrEmpty(updatedUser.ImageUrl))
-                {
-                    var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", updatedUser.ImageUrl.TrimStart('/'));
-                    if (System.IO.File.Exists(oldFilePath))
-                    {
-                        System.IO.File.Delete(oldFilePath);
-                    }
-                }
-
-                // Tạo tên file duy nhất
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                // Lưu file vào thư mục
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await ImageFile.CopyToAsync(stream);
-                }
-
-                // Cập nhật ImageUrl
-                imageUrl = $"/uploads/{fileName}";
-            }
-
-            // Gọi API để cập nhật thông tin
-            var httpClient = _httpClientFactory.CreateClient();
-            var apiUrl = $"https://localhost:7202/api/User/{currentUser.UserID}";
-            var userDTO = new UserDTO
-            {
-                UserID = currentUser.UserID,
-                Username = updatedUser.Username, // Đảm bảo Username được gửi
-                FullName = updatedUser.FullName,
-                Email = updatedUser.Email,
-                Phone = updatedUser.Phone,
-                Address = updatedUser.Address,
-                Gender = updatedUser.Gender,
-                ImageUrl = imageUrl // Cập nhật ImageUrl (mới hoặc giữ nguyên)
-            };
-
-            // Log dữ liệu gửi lên API
-            Console.WriteLine($"Sending to API: {JsonConvert.SerializeObject(userDTO)}");
-
-            var response = await httpClient.PutAsJsonAsync(apiUrl, userDTO);
-
-            if (response.IsSuccessStatusCode)
-            {
-                // Cập nhật lại session với thông tin mới
-                updatedUser.ImageUrl = imageUrl; // Cập nhật ImageUrl vào updatedUser
-                updatedUser.CreateAt = currentUser.CreateAt; // Giữ nguyên CreateAt
-                updatedUser.IsDelete = currentUser.IsDelete; // Giữ nguyên IsDelete
-                updatedUser.Role = currentUser.Role;         // Giữ nguyên Role
-                var updatedUserJson = JsonConvert.SerializeObject(updatedUser);
-                HttpContext.Session.SetString("customerInfo", updatedUserJson);
-                HttpContext.Session.SetString("Username", updatedUser.Username ?? updatedUser.FullName);
-
-                return RedirectToAction("Profile"); // Quay lại trang profile sau khi cập nhật
-            }
-
-            // Log lỗi từ API
-            var errorContent = await response.Content.ReadAsStringAsync();
-            ModelState.AddModelError("", $"Failed to update profile: {errorContent}");
-            Console.WriteLine($"API Error: {errorContent}");
-            return View(updatedUser);
-        }
-
         [HttpGet("logout")]
         public IActionResult Logout()
         {
-            HttpContext.Session.Clear(); // Xóa toàn bộ session
-            return RedirectToAction("Login", "User");
+            HttpContext.Session.Clear();
+            return RedirectToAction("Index", "Home");
         }
     }
 }
