@@ -20,6 +20,7 @@ using System.Text;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authorization;
 using BookStore_Client.Domain.DTO;
+using Microsoft.Extensions.Logging;
 
 namespace BookStore_Client.Controllers
 {
@@ -32,8 +33,8 @@ namespace BookStore_Client.Controllers
         private readonly HttpClient _httpClient = null;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public UserController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, HttpClient httpClient)
+        private readonly ILogger<UserController> _logger;
+        public UserController(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, HttpClient httpClient, ILogger<UserController> logger)
         {
             _apiBaseUrl = "https://localhost:7202/api/User";
             // _context = context;
@@ -42,6 +43,7 @@ namespace BookStore_Client.Controllers
             _httpContextAccessor = httpContextAccessor;
             var contentType = new MediaTypeWithQualityHeaderValue("application/json");
             _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
+            _logger = logger;
         }
 
         public static Dictionary<string, string> DecodeJwtToken(string token)
@@ -360,6 +362,77 @@ namespace BookStore_Client.Controllers
         {
             HttpContext.Session.Clear(); // Xóa toàn bộ session
             return RedirectToAction("Index", "Home");
+        }
+
+        // GET: User/Index
+        public async Task<IActionResult> Index()
+        {
+            var client = _httpClientFactory.CreateClient();
+            try
+            {
+                var response = await client.GetAsync($"{_apiBaseUrl}/non-admin");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    ViewBag.ErrorMessage = "Unable to fetch user list.";
+                    return View(new List<User>());
+                }
+
+                var jsonString = await response.Content.ReadAsStringAsync();
+                var users = JsonConvert.DeserializeObject<List<User>>(jsonString);
+                if (users == null)
+                {
+                    ViewBag.ErrorMessage = "No users found.";
+                    return View(new List<User>());
+                }
+
+                return View(users);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = $"An error occurred: {ex.Message}";
+                return View(new List<User>());
+            }
+        }
+
+        // POST: User/Block/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Block(int id)
+        {
+            _logger.LogInformation("Starting Block action for UserID: {UserID}", id);
+
+            if (id <= 0)
+            {
+                _logger.LogWarning("Invalid UserID: {UserID} provided for block action.", id);
+                TempData["ErrorMessage"] = "Invalid user ID.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            try
+            {
+                var response = await client.PutAsync($"{_apiBaseUrl}/{id}/block", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("UserID: {UserID} blocked successfully.", id);
+                    TempData["SuccessMessage"] = "User has been blocked successfully.";
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Failed to block UserID: {UserID}. Status: {StatusCode}. Error: {Error}", id, response.StatusCode, errorContent);
+                    TempData["ErrorMessage"] = $"Failed to block user: {errorContent}";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while blocking UserID: {UserID}", id);
+                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

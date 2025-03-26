@@ -319,5 +319,34 @@ namespace BookStore_API.Controllers
             public string NewPassword { get; set; }
             public string ConfirmPassword { get; set; }
         }
+
+        [HttpGet("non-admin")]
+        public async Task<ActionResult<IEnumerable<User>>> GetNonAdminUsers()
+        {
+            var users = await _userRepository.GetByCondition(u => u.Role != 1 && u.IsDelete != true);
+            if (users == null || !users.Any())
+            {
+                return NotFound("No non-admin users found.");
+            }
+            return Ok(users);
+        }
+
+        [HttpPut("{id}/block")]
+        public async Task<IActionResult> BlockUser(int id)
+        {
+            var user = await _userRepository.GetById(id);
+            if (user == null)
+            {
+                return NotFound($"User with ID {id} not found.");
+            }
+
+            user.IsDelete = true;
+            user.UpdateAt = DateOnly.FromDateTime(DateTime.Now);
+            await _userRepository.Update(user);
+
+            return Ok(new { Message = "User has been blocked successfully." });
+        }
     }
+
+
 }

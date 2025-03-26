@@ -29,7 +29,7 @@
                     <a class="nav-link text-white" href="@Url.Action("Index", "Supplier")">🛒 Supplier</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="@Url.Action("Profile", "Admin")">👤 Profile</a>
+                    <a class="nav-link text-white" href="@Url.Action("Index", "User")">👤 Profile</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="@Url.Action("index", "Author")">💳 Author</a>
@@ -55,7 +55,6 @@
 
 @if (User.Identity.IsAuthenticated)
 {
-    <p>Welcome, @User.Identity.Name!</p>
     <a asp-controller="Account" asp-action="Logout">Logout</a>
 }
 else
