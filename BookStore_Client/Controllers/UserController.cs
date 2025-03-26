@@ -81,7 +81,9 @@ namespace BookStore_Client.Controllers
                     var userInfo = DecodeJwtToken(token);
                     int userId = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.NameIdentifier));
                     int role = Convert.ToInt32(userInfo.GetValueOrDefault(ClaimTypes.Role));
+                    string email = Convert.ToString(userInfo.GetValueOrDefault(ClaimTypes.Email));
                     HttpContext.Session.SetString("Username", user.Username);
+                    HttpContext.Session.SetString("Email", email);
                     HttpContext.Session.SetInt32("UserId", userId);
                     HttpContext.Session.SetInt32("Role", role);
                     return RedirectToAction("Index", "Home");
