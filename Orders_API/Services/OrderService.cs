@@ -5,6 +5,8 @@ using Orders_API.Services.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
+using System.Linq.Expressions;
+using BookStore_Client.Domain.DTO;
 
 namespace Orders_API.Services
 {
@@ -47,6 +49,39 @@ namespace Orders_API.Services
             // Add the Order and its OrderDetails to the repository
             await Task.Run(() => _orderRepository.Add(order));
             return order;
+        }
+
+        public async Task<EarningsDTO> GetEarnings(int year, int month)
+        {
+            // Lấy tất cả đơn hàng đã hoàn thành
+            Expression<Func<Order, bool>> completedOrders = o => o.Status == "Accept";
+            var orders = await _orderRepository.GetByCondition(completedOrders);
+
+            // Tổng giá trị tất cả các đơn hàng (dựa trên TotalAmount)
+            decimal totalSales = orders
+                .Where(o => o.TotalAmount.HasValue)
+                .Sum(o => o.TotalAmount.Value);
+
+            // Doanh thu cho tháng và năm được chọn
+            Expression<Func<Order, bool>> monthlyFilter = o =>
+                o.Status == "Accept" &&
+                o.OrderDate.HasValue &&
+                o.OrderDate.Value.Year == year &&
+                o.OrderDate.Value.Month == month;
+
+            var monthlyOrders = await _orderRepository.GetByCondition(monthlyFilter);
+
+            // Tính doanh thu tháng dựa trên TotalAmount
+            decimal monthlyEarnings = monthlyOrders
+                .Where(o => o.TotalAmount.HasValue)
+                .Sum(o => o.TotalAmount.Value);
+
+            return new EarningsDTO
+            {
+                TotalSales = totalSales,
+                
+                MonthlyEarningsAfterFee= monthlyEarnings
+            };
         }
     }
 

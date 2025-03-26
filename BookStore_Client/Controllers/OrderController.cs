@@ -6,6 +6,8 @@ using BookStore_Client.Models;
 using Microsoft.Extensions.Logging;
 using BookStore_Client.Models.ViewModel;
 using BookStore_API.Domain.DTO;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using BookStore_Client.Domain.DTO;
 
 
 
@@ -25,6 +27,8 @@ namespace BookStore_Client.Controllers
             _logger = logger;
         }
 
+        // GET: Order/Index
+        // GET: Order/Index
         // GET: Order/Index
         public async Task<IActionResult> Index()
         {
@@ -50,8 +54,9 @@ namespace BookStore_Client.Controllers
                     return View(new List<Models.ViewModel.OrderViewModel>());
                 }
 
-                var orders = JsonConvert.DeserializeObject<List<Order>>(data);
-                if (orders == null)
+                // Sử dụng OrderViewDTO1 thay vì Order để lấy OrderDetails
+                var apiOrders = JsonConvert.DeserializeObject<List<OrderViewDTO1>>(data);
+                if (apiOrders == null)
                 {
                     _logger.LogError("Deserialization failed: orders is null. Returning empty order list.");
                     return View(new List<Models.ViewModel.OrderViewModel>());
@@ -59,36 +64,48 @@ namespace BookStore_Client.Controllers
 
                 // Tạo danh sách OrderViewModel và lấy FullName từ API User
                 var orderViewModels = new List<Models.ViewModel.OrderViewModel>();
-                foreach (var order in orders)
+                foreach (var order in apiOrders)
                 {
                     string userFullName = "Unknown";
-                    if (order.UserID.HasValue)
+                    // Bỏ kiểm tra HasValue, gọi API User trực tiếp với order.UserID
+                    _logger.LogDebug("Fetching user info for UserID: {UserID}", order.UserID);
+                    var userResponse = await _httpClient.GetAsync($"{_userApiUrl}/{order.UserID}");
+                    if (userResponse.IsSuccessStatusCode)
                     {
-                        _logger.LogDebug("Fetching user info for UserID: {UserID}", order.UserID);
-                        var userResponse = await _httpClient.GetAsync($"{_userApiUrl}/{order.UserID}");
-                        if (userResponse.IsSuccessStatusCode)
-                        {
-                            var userData = await userResponse.Content.ReadAsStringAsync();
-                            _logger.LogDebug("User API response: {UserData}", userData); // Ghi log dữ liệu trả về
-                            var user = JsonConvert.DeserializeObject<User>(userData);
-                            userFullName = user?.FullName ?? "Unknown";
-                            _logger.LogDebug("User FullName fetched: {FullName}", userFullName);
-                        }
-                        else
-                        {
-                            var errorContent = await userResponse.Content.ReadAsStringAsync();
-                            _logger.LogWarning("Failed to fetch user info for UserID: {UserID}. Status: {StatusCode}. Error: {Error}", order.UserID, userResponse.StatusCode, errorContent);
-                        }
+                        var userData = await userResponse.Content.ReadAsStringAsync();
+                        _logger.LogDebug("User API response: {UserData}", userData);
+                        var user = JsonConvert.DeserializeObject<User>(userData);
+                        userFullName = user?.FullName ?? "Unknown";
+                        _logger.LogDebug("User FullName fetched: {FullName}", userFullName);
+                    }
+                    else
+                    {
+                        var errorContent = await userResponse.Content.ReadAsStringAsync();
+                        _logger.LogWarning("Failed to fetch user info for UserID: {UserID}. Status: {StatusCode}. Error: {Error}", order.UserID, userResponse.StatusCode, errorContent);
                     }
 
                     orderViewModels.Add(new Models.ViewModel.OrderViewModel
                     {
                         OrderID = order.OrderID,
                         UserFullName = userFullName,
-                        OrderDate = order.OrderDate,
+                        OrderDate = order.OrderDate.HasValue ? DateOnly.FromDateTime(order.OrderDate.Value) : null,
                         TotalAmount = order.TotalAmount,
                         PaymentMethod = order.PaymentMethod,
-                        Status = order.Status
+                        Status = order.Status,
+                        OrderDetails = order.OrderDetails?.Select(d => new OrderDetailViewModel
+                        {
+                            OrderDetailID = d.OrderDetailID,
+                            OrderID = d.OrderID,
+                            BookID = d.BookID,
+                            Quantity = d.Quantity,
+                            UnitPrice = d.UnitPrice,
+                            Book = d.Book != null ? new BookViewModel
+                            {
+                                BookID = d.Book.BookID,
+                                Title = d.Book.Title,
+                                ImageURL = d.Book.ImageURL
+                            } : null
+                        }).ToList() ?? new List<OrderDetailViewModel>()
                     });
                 }
 
@@ -209,6 +226,90 @@ namespace BookStore_Client.Controllers
                 _logger.LogError(ex, "Failed to connect to Orders_API: {Url}", $"{_apiUrl}/user/{userId}");
                 ViewBag.ErrorMessage = "Cannot connect to Orders API. " + ex.Message;
                 return View(new List<OrderViewModel>());
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Earnings(int? year, int? month)
+        {
+            _logger.LogInformation("Starting Earnings action to fetch earnings data.");
+
+            // Nếu không có year hoặc month, sử dụng giá trị mặc định (tháng hiện tại)
+            year ??= DateTime.Now.Year;
+            month ??= DateTime.Now.Month;
+
+            try
+            {
+                // Gọi API earnings
+                var earningsUrl = $"{_apiUrl}/earnings?year={year}&month={month}";
+                _logger.LogDebug("Sending GET request to API: {EarningsUrl}", earningsUrl);
+                var response = await _httpClient.GetAsync(earningsUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("API request failed with status code: {StatusCode}.", response.StatusCode);
+                    ViewBag.ErrorMessage = $"Failed to fetch earnings: {response.StatusCode}";
+                    return View(new EarningsDTO { MonthlyEarningsAfterFee = 0, TotalSales = 0 });
+                }
+
+                var data = await response.Content.ReadAsStringAsync();
+                _logger.LogDebug("API response received: {Data}", data);
+
+                if (string.IsNullOrEmpty(data))
+                {
+                    _logger.LogWarning("API returned empty data.");
+                    ViewBag.ErrorMessage = "No earnings data available.";
+                    return View(new EarningsDTO { MonthlyEarningsAfterFee = 0, TotalSales = 0 });
+                }
+
+                // Deserialize dữ liệu từ API
+                var earnings = JsonConvert.DeserializeObject<EarningsDTO>(data);
+                if (earnings == null)
+                {
+                    _logger.LogError("Deserialization failed: earnings is null. Response data: {Data}", data);
+                    ViewBag.ErrorMessage = "Failed to parse earnings data.";
+                    return View(new EarningsDTO { MonthlyEarningsAfterFee = 0, TotalSales = 0 });
+                }
+
+                // Truyền dữ liệu vào ViewBag để hiển thị year và month đã chọn
+                ViewBag.SelectedYear = year;
+                ViewBag.SelectedMonth = month;
+
+                _logger.LogInformation("Successfully fetched earnings: MonthlyEarningsAfterFee={MonthlyEarningsAfterFee}, TotalSales={TotalSales}", earnings.MonthlyEarningsAfterFee, earnings.TotalSales);
+                return View(earnings);
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Network error occurred while calling API: {EarningsUrl}", $"{_apiUrl}/earnings?year={year}&month={month}");
+                ViewBag.ErrorMessage = "Cannot connect to Orders API. " + ex.Message;
+                return View(new EarningsDTO { MonthlyEarningsAfterFee = 0, TotalSales = 0 });
+            }
+            catch (JsonException ex)
+            {
+                // Đảm bảo data được khởi tạo trước khi ghi log
+                string dataForLog = "N/A"; // Giá trị mặc định nếu data không được gán
+                try
+                {
+                    var response = await _httpClient.GetAsync($"{_apiUrl}/earnings?year={year}&month={month}");
+                    if (response != null)
+                    {
+                        dataForLog = await response.Content.ReadAsStringAsync();
+                    }
+                }
+                catch
+                {
+                    // Nếu không thể lấy lại data, giữ giá trị mặc định
+                }
+
+                _logger.LogError(ex, "Failed to deserialize API response: {Data}", dataForLog);
+                ViewBag.ErrorMessage = "Failed to parse earnings data.";
+                return View(new EarningsDTO { MonthlyEarningsAfterFee = 0, TotalSales = 0 });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in Earnings action.");
+                ViewBag.ErrorMessage = "An unexpected error occurred.";
+                return View(new EarningsDTO { MonthlyEarningsAfterFee = 0, TotalSales = 0 });
             }
         }
     } 
