@@ -51,7 +51,7 @@ namespace BookStore_Client.Controllers
             if (role != 1)
             {
                 // Nếu không phải admin, chuyển hướng về trang Home Page
-                return Redirect("https://localhost:7106/");
+                return RedirectToAction("Index", "Home");
             }
 
             return null; // Cho phép tiếp tục nếu là admin
@@ -98,15 +98,13 @@ namespace BookStore_Client.Controllers
                     HttpContext.Session.SetString("Email", email);
                     HttpContext.Session.SetInt32("UserId", userId);
                     HttpContext.Session.SetInt32("Role", role);
-
-                    // Phân quyền sau khi đăng nhập
                     if (role == 1) // Admin
                     {
                         return Redirect("https://localhost:7106/Book");
                     }
                     else if (role == 2 || role == 3) // Người dùng thông thường
                     {
-                        return Redirect("https://localhost:7106/");
+                        return RedirectToAction("Index", "Home");
                     }
                     else
                     {
@@ -124,6 +122,33 @@ namespace BookStore_Client.Controllers
                 ModelState.AddModelError(string.Empty, $"Tài khoản hoặc mật khẩu không đúng!");
                 return RedirectToAction("Login", "User");
             }
+        }
+
+        [HttpGet("register")]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromForm] User user)
+        {
+            var userDTO = new User
+            {
+                Username = user.Username,
+                Password = user.Password,
+                Email = user.Email,
+                Phone = user.Phone
+            };
+
+            var jsonContent = JsonConvert.SerializeObject(userDTO);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_apiBaseUrl}/register", content);
+            if (!response.IsSuccessStatusCode)
+            {
+                return View(user);
+            }
+            return RedirectToAction("Login", "User");
         }
 
         [HttpGet("google-login")]
@@ -213,6 +238,7 @@ namespace BookStore_Client.Controllers
         [HttpGet("profile")]
         public async Task<IActionResult> Profile()
         {
+            ViewBag.ShowNav = false;
             var userDataJson = HttpContext.Session.GetString("customerInfo");
             if (string.IsNullOrEmpty(userDataJson) && string.IsNullOrEmpty(HttpContext.Session.GetString("JWTToken")))
             {
@@ -360,20 +386,8 @@ namespace BookStore_Client.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                var updatedUser = new User
-                {
-                    UserID = userId,
-                    Username = currentUser.Username,
-                    FullName = editModel.FullName,
-                    Email = currentUser.Email,
-                    Phone = editModel.Phone,
-                    Address = editModel.Address,
-                    Gender = editModel.Gender,
-                    ImageUrl = imageUrl,
-                    CreateAt = currentUser.CreateAt,
-                    IsDelete = currentUser.IsDelete,
-                    Role = currentUser.Role
-                };
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var updatedUser = JsonConvert.DeserializeObject<User>(jsonResponse);
                 HttpContext.Session.SetString("customerInfo", JsonConvert.SerializeObject(updatedUser));
                 HttpContext.Session.SetString("Username", updatedUser.Username ?? updatedUser.FullName);
                 return RedirectToAction("Profile");

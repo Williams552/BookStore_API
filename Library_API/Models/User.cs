@@ -30,10 +30,10 @@ public partial class User
     
     public int? OTP { get; set; }
     public DateTime? TimeOtp { get; set; }
-    public bool IsActive { get; set; } = false; 
-
+    public bool? IsActive { get; set; } = false; 
 
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     public virtual ICollection<WishList> WishLists { get; set; } = new List<WishList>();
 }

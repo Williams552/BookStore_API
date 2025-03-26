@@ -1,0 +1,196 @@
+﻿@{
+    ViewData["Title"] = "Cart Page";
+}
+
+<!-- Product-card section -->
+<section class="product-card-section mt-3 pt-5">
+    <div class="container">
+        <div class="row gx-5 gy-5 px-1 py-2">
+            <div class="col-md-12">
+                <div class="">
+                    <table class="card-table bg-white my-4">
+                        <thead class="card-thead">
+                            <tr class="">
+                                <th class="card-th text-center px-5">
+                                    <span class="text-white card-th-span">Action</span>
+                                </th>
+                                <th class="card-th text-center">
+                                    <span class="text-white card-th-span">Product</span>
+                                </th>
+                                <th class="card-th text-center px-5">
+                                    <span class="text-white card-th-span">Price</span>
+                                </th>
+                                <th class="card-th text-center px-5">
+                                    <span class="text-white card-th-span">Quantity</span>
+                                </th>
+                                <th class="card-th text-center px-5">
+                                    <span class="text-white card-th-span">Subtotal</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="tbody-background">
+                            <tr>
+                                <td class="ps-5 pe-2">
+                                    <a href="#" class="text-decoration-none text-primary">
+                                        <h5><span class="bi bi-x-circle-fill pe-2"></span>Remove</h5>
+                                    </a>
+                                </td>
+                                <td class="p-5">
+                                    <div class="row gy-3">
+                                        <div class="col-xl-4">
+                                            <img src="/images/product-checkout/product-1.png" alt="Card img"
+                                                 class="img-fluid bg-white p-2">
+                                        </div>
+                                        <div class="col-xl-8 align-self-center">
+                                            <h5>God Who Hate Glitterign Stars</h5>
+                                            <p>Orem dolor sit amet, consectetur adipiscing eius Lorem ipsum </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <h5>$56.00</h5>
+                                </td>
+                                <td class="text-center">
+                                    <div class="quantity buttons_added">
+                                        <input type="button" value="-"
+                                               class="minus bg-primary text-white me-0 fs-3"><input type="number"
+                                                                                                    step="1" min="1" max="100" name="quantity" value="1" title="Qty"
+                                                                                                    class="input-text qty fs-3 text bg-primary text-white"><input type="button" value="+" class="plus fs-3 ms-0 bg-primary text-white">
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <h5>$156.00</h5>
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="ps-5 pe-2">
+                                    <a href="#" class="text-decoration-none text-primary">
+                                        <h5><span class="bi bi-x-circle-fill pe-2"></span>Remove</h5>
+                                    </a>
+                                </td>
+                                <td class="p-5">
+                                    <div class="row gy-3">
+                                        <div class="col-xl-4">
+                                            <img src="/images/product-checkout/product-2.png" alt="Card img"
+                                                 class="img-fluid bg-white p-2">
+                                        </div>
+                                        <div class="col-xl-8 align-self-center">
+                                            <h5>God Who Hate Glitterign Stars</h5>
+                                            <p>Orem dolor sit amet, consectetur adipiscing eius Lorem ipsum </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <h5>$56.00</h5>
+                                </td>
+                                <td class="text-center">
+                                    <div class="quantity buttons_added">
+                                        <input type="button" value="-"
+                                               class="minus bg-primary text-white me-0 fs-3"><input type="number"
+                                                                                                    step="1" min="1" max="100" name="quantity" value="1" title="Qty"
+                                                                                                    class="input-text qty fs-3 text bg-primary text-white"><input type="button" value="+" class="plus fs-3 ms-0 bg-primary text-white">
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <h5>$156.00</h5>
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="ps-5 pe-2">
+                                    <a href="#" class="text-decoration-none text-primary">
+                                        <h5><span class="bi bi-x-circle-fill pe-2"></span>Remove</h5>
+                                    </a>
+                                </td>
+                                <td class="p-5">
+                                    <div class="row gy-3">
+                                        <div class="col-xl-4">
+                                            <img src="/images/product-checkout/product-3.png" alt="Card img"
+                                                 class="img-fluid bg-white p-2">
+                                        </div>
+                                        <div class="col-xl-8 align-self-center">
+                                            <h5>God Who Hate Glitterign Stars</h5>
+                                            <p>Orem dolor sit amet, consectetur adipiscing eius Lorem ipsum </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <h5>$56.00</h5>
+                                </td>
+                                <td class="text-center">
+                                    <div class="quantity buttons_added">
+                                        <input type="button" value="-"
+                                               class="minus bg-primary text-white me-0 fs-3"><input type="number"
+                                                                                                    step="1" min="1" max="100" name="quantity" value="1" title="Qty"
+                                                                                                    class="input-text qty fs-3 text bg-primary text-white"><input type="button" value="+" class="plus fs-3 ms-0 bg-primary text-white">
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <h5>$156.00</h5>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <form action="#" class="d-flex flex-wrap">
+            <input type="text" class="form-control cart-input w-50" id="InputText1" placeholder="Coupon Code...">
+            <button type="submit" class="btn btn-primary ms-4">Apply Coupon</button>
+        </form>
+
+    </div>
+</section>
+<!-- End product-card section -->
+<!-- Card-total section  -->
+<section class="card-total pt-2 pb-5">
+    <div class="container">
+        <form action="#" class="">
+            <div class="row row-cols-1 row-cols-md-1 gy-5">
+
+                <div class="col">
+                    <table class="card-table my-4">
+                        <thead class="card-thead">
+                            <tr class="border-bottom">
+                                <th class="text-start"></th>
+                                <th class="card-th text-end px-5">
+                                    <span class="text-white card-th-span">Cart Totals</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="cart-input">
+                            <tr class="border-top">
+                                <td class="text-start">
+                                    <h5>2 Items</h5>
+                                </td>
+                                <td class="text-end">
+                                    <h5>$156.00</h5>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-start">
+                                    <h5>Shipping</h5>
+                                </td>
+                                <td class="text-end">
+                                    <h5>Free</h5>
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="text-start">
+                                    <h5>Total</h5>
+                                </td>
+                                <td class="text-end">
+                                    <h5>$156.00</h5>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+<!-- End card-total section  -->

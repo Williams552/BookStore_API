@@ -29,7 +29,7 @@ namespace BookStore_Client.Controllers
             using (var client = _httpClient)
             {
                 int cartItemCount = 0;
-                HttpResponseMessage response = await client.GetAsync($"{_apiUrl}/getCartByUserId{userId}");
+                HttpResponseMessage response = await client.GetAsync($"{_apiUrl}/getCartByUserId/{userId}");
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonString = await response.Content.ReadAsStringAsync();

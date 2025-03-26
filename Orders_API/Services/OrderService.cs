@@ -83,7 +83,7 @@ namespace Orders_API.Services
                 MonthlyEarningsAfterFee= monthlyEarnings
             };
         }
-
- 
-        }
     }
+
+
+}

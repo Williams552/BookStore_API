@@ -113,6 +113,12 @@
                                 <input type="hidden" name="Cart.Quantity" value="1">
                                 <button type="submit" class="btn btn-primary">Add To Cart</button>
                             </form>
+                            <form asp-action="AddToList" asp-controller="WishList" method="post">
+                                <input type="hidden" name="bookId" value="@Model.Book.BookID" />
+                                <button type="submit" class="like btn btn-default icon-wish-btn">
+                                    <span class="fa fa-heart wish-icon"></span>
+                                </button>
+                            </form>
                         </div>
 
                         <!-- product categories -->
@@ -210,7 +216,7 @@
                 }
             } catch (error) {
                 console.error('Lỗi:', error);
-                alert('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng');
+                alert('Please Login');
             }
         });
     </script>
