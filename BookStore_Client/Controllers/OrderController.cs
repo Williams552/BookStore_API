@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using BookStore_Client.Models;
 using Microsoft.Extensions.Logging;
 using BookStore_Client.Models.ViewModel;
-using BookStore_API.Domain.DTO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using BookStore_Client.Domain.DTO;
 using System.Text.Json;
@@ -257,9 +256,46 @@ namespace BookStore_Client.Controllers
                     return Json(new { success = false, message = "Giỏ hàng trống." });
                 }
             }
+
+            // Tạo OrderDTO
+            var orderDTO = new OrderDTO
+            {
+                UserID = userId.Value,
+                OrderDate = DateOnly.FromDateTime(DateTime.Now),
+                TotalAmount = cartItems.Sum(c => c.TotalPrice ?? 0),
+                PaymentMethod = paymentMethod,
+                Status = "Pending",
+                Address = paymentMethod == 1 ? address : null, // Chỉ lưu địa chỉ khi COD
+                OrderDetails = cartItems.Select(c => new OrderDetailDTO
+                {
+                    BookID = c.BookID.Value,
+                    Quantity = c.Quantity.Value
+                }).ToList()
+            };
+
+            // Gửi yêu cầu tạo Order đến Order API
+            var orderApiUrl = "https://localhost:7218/api/OrderService/Order";
+            var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(orderDTO), Encoding.UTF8, "application/json");
+            var orderResponse = await _httpClient.PostAsync(orderApiUrl, jsonContent);
+
+            if (!orderResponse.IsSuccessStatusCode)
+            {
+                return Json(new { success = false, message = "Tạo đơn hàng thất bại." });
+            }
+
+            // Xóa giỏ hàng sau khi đặt hàng thành công
+            var deleteCartResponse = await _httpClient.DeleteAsync($"{_cartApiUrl}/DeleteCartByUser/{userId}");
+            if (!deleteCartResponse.IsSuccessStatusCode)
+            {
+                // Xử lý lỗi nếu cần
+            }
+
+            return Json(new { success = true, message = "Đặt hàng thành công!" });
+            return RedirectToAction("HistoryOrder");
         }
 
-        [HttpGet]
+
+    [HttpGet]
         public async Task<IActionResult> Earnings(int? year, int? month)
         {
             _logger.LogInformation("Starting Earnings action to fetch earnings data.");
@@ -314,7 +350,7 @@ namespace BookStore_Client.Controllers
                 ViewBag.ErrorMessage = "Cannot connect to Orders API. " + ex.Message;
                 return View(new EarningsDTO { MonthlyEarningsAfterFee = 0, TotalSales = 0 });
             }
-            catch (JsonException ex)
+            catch (System.Text.Json.JsonException ex)
             {
                 // Đảm bảo data được khởi tạo trước khi ghi log
                 string dataForLog = "N/A"; // Giá trị mặc định nếu data không được gán
@@ -343,9 +379,4 @@ namespace BookStore_Client.Controllers
             }
         }
     } 
-
-            return RedirectToAction("HistoryOrder");
-        }
-
-    }
 }
