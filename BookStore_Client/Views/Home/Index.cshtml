@@ -33,15 +33,18 @@
                                     </div>
                                     <div class="d-flex gap-4 align-items-center py-30 border-bottom">
                                         <!-- Nút "Add To Cart" -->
-                                        <form id="cartForm" asp-action="AddToCart" asp-controller="Cart" method="post">
+                                        <form class="cartForm" asp-action="AddToCart" asp-controller="Cart" method="post">
                                             @if (book == null)
                                             {
                                                 <p>Lỗi: @book không tồn tại</p>
                                             }
-                                            <input type="hidden" name="Cart.BookID" value="@book.BookID">
-                                            <input type="hidden" name="Cart.Quantity" value="1">
+                                            <input type="hidden" name="bookId" value="@book.BookID">
+                                            <input type="hidden" name="quantity" value="1">
                                             <button type="submit" class="btn btn-primary">Add To Cart</button>
                                         </form>
+                                        <a class="icon-wish-btn" asp-action="" asp-controller="">
+                                            <i class="bi bi-heart-fill wish-icon"></i>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -279,6 +282,28 @@
             });
             this.style.display = 'none';
             document.querySelector('.show-all-authors').style.display = 'inline';
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $(".cartForm").submit(function (event) {
+                event.preventDefault(); // Ngăn chặn form submit theo cách truyền thống
+
+                var form = $(this);
+                var url = form.attr("action"); // Lấy URL của form
+                var formData = form.serialize(); // Chuyển dữ liệu form thành chuỗi
+
+                $.post(url, formData, function (response) {
+                    if (response.success) {
+                        alert("Add Successful"); // Hiển thị thông báo
+                    } else {
+                        alert("Thêm thất bại: " + response.message);
+                    }
+                }).fail(function () {
+                    alert("Có lỗi xảy ra khi thêm vào giỏ hàng.");
+                });
+            });
         });
     </script>
 }
