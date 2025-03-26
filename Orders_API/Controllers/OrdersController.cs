@@ -184,21 +184,43 @@ namespace Orders_API.Controllers
         [HttpPut("{id}/confirm")]
         public async Task<IActionResult> ConfirmOrder(int id)
         {
-            var existingOrder = await Task.Run(() => _orderRepository.GetById(id));
-            if (existingOrder == null)
+            try
             {
-                return NotFound($"Order with ID {id} not found.");
-            }
+                var existingOrder = await _orderRepository.GetById(id, o => o.OrderDetails);
+                if (existingOrder == null)
+                {
+                    return NotFound($"Order with ID {id} not found.");
+                }
 
-            if (existingOrder.Status != "Pending")
+                if (existingOrder.Status != "Pending")
+                {
+                    return BadRequest("Only orders with 'Pending' status can be confirmed.");
+                }
+
+                // Gọi API cập nhật stock cho từng sách
+                foreach (var detail in existingOrder.OrderDetails)
+                {
+                    var response = await _httpClient.PutAsJsonAsync(
+                        $"Book/updateStock/{detail.BookID}",
+                        detail.Quantity);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // Rollback xác nhận đơn hàng nếu có lỗi
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        return BadRequest($"Failed to update stock for book {detail.BookID}: {errorContent}");
+                    }
+                }
+
+                existingOrder.Status = "Accept";
+                await _orderRepository.Update(existingOrder);
+
+                return Ok(existingOrder);
+            }
+            catch (Exception ex)
             {
-                return BadRequest("Only orders with 'Pending' status can be confirmed.");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-
-            existingOrder.Status = "Accept";
-            await Task.Run(() => _orderRepository.Update(existingOrder));
-
-            return NoContent();
         }
 
         [HttpGet("earnings")]

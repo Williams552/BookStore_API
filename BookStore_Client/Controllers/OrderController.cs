@@ -8,16 +8,20 @@ using BookStore_Client.Models.ViewModel;
 using BookStore_API.Domain.DTO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using BookStore_Client.Domain.DTO;
+using System.Text.Json;
+using System.Text;
+using BookStore_Client.Domain.DTO;
 
 
 
 namespace BookStore_Client.Controllers
 {
-    public class OrderController : Controller
+    public class OrderController : BaseController
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl = "https://localhost:7218/api/OrderService/Order";
         private readonly string _userApiUrl = "https://localhost:7202/api/user"; // Giả sử endpoint API cho User
+        private readonly string _cartApiUrl = "https://localhost:7202/api/cart"; // Giả sử endpoint API cho Book
         private readonly ILogger<OrderController> _logger;
 
         public OrderController(HttpClient httpClient, ILogger<OrderController> logger)
@@ -27,8 +31,6 @@ namespace BookStore_Client.Controllers
             _logger = logger;
         }
 
-        // GET: Order/Index
-        // GET: Order/Index
         // GET: Order/Index
         public async Task<IActionResult> Index()
         {
@@ -117,7 +119,7 @@ namespace BookStore_Client.Controllers
                 _logger.LogError(ex, "Network error occurred while calling API: {ApiUrl}", _apiUrl);
                 return View(new List<Models.ViewModel.OrderViewModel>());
             }
-            catch (JsonException ex)
+            catch (System.Text.Json.JsonException ex)
             {
                 _logger.LogError(ex, "Failed to deserialize API response: {Data}", await _httpClient.GetStringAsync(_apiUrl));
                 return View(new List<Models.ViewModel.OrderViewModel>());
@@ -223,9 +225,37 @@ namespace BookStore_Client.Controllers
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "Failed to connect to Orders_API: {Url}", $"{_apiUrl}/user/{userId}");
-                ViewBag.ErrorMessage = "Cannot connect to Orders API. " + ex.Message;
-                return View(new List<OrderViewModel>());
+                ViewBag.ErrorMessage = "Unable to load order history.";
+                return View(new List<Models.ViewModel.OrderViewModel>());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Checkout(int paymentMethod, string address)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            // Lấy thông tin giỏ hàng từ API
+            List<Cart> cartItems;
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync($"{_cartApiUrl}/getCartByUserId{userId}");
+                if (!response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = false, message = "Không thể lấy thông tin giỏ hàng." });
+                }
+                var jsonString = await response.Content.ReadAsStringAsync();
+                cartItems = System.Text.Json.JsonSerializer.Deserialize<List<Cart>>(jsonString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                if (cartItems == null || cartItems.Count == 0)
+                {
+                    return Json(new { success = false, message = "Giỏ hàng trống." });
+                }
             }
         }
 
@@ -314,5 +344,8 @@ namespace BookStore_Client.Controllers
         }
     } 
 
+            return RedirectToAction("HistoryOrder");
+        }
 
+    }
 }

@@ -47,7 +47,7 @@ namespace Orders_API.Services
             order.OrderDetails = orderDetails;
 
             // Add the Order and its OrderDetails to the repository
-            await Task.Run(() => _orderRepository.Add(order));
+            await _orderRepository.Add(order);
             return order;
         }
 

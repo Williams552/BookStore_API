@@ -1,9 +1,9 @@
-using Orders_API.Models;
 using System;
 
-namespace Orders_API.Domain.DTO
+namespace BookStore_Client.Domain.DTO
+
 {
-    public class OrderDTO
+    public class OrderViewDTO
     {
         public int OrderID { get; set; }
 
@@ -16,8 +16,6 @@ namespace Orders_API.Domain.DTO
         public int? PaymentMethod { get; set; }
 
         public string? Status { get; set; }
-        public string? Address { get; set; }
-
-        public ICollection<OrderDetailDTO> OrderDetails { get; set; } = new List<OrderDetailDTO>();
+        public ICollection<OrderDetailViewDTO> OrderDetails { get; set; } = new List<OrderDetailViewDTO>();
     }
 }
