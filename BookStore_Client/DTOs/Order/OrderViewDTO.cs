@@ -1,8 +1,9 @@
 using System;
 
 namespace BookStore_Client.Domain.DTO
+
 {
-    public class OrderDTO
+    public class OrderViewDTO
     {
         public int OrderID { get; set; }
 
@@ -15,7 +16,6 @@ namespace BookStore_Client.Domain.DTO
         public int? PaymentMethod { get; set; }
 
         public string? Status { get; set; }
-        public ICollection<OrderDetailDTO> OrderDetails { get; set; } = new List<OrderDetailDTO>();
-        public string? Address { get; internal set; }
+        public ICollection<OrderDetailViewDTO> OrderDetails { get; set; } = new List<OrderDetailViewDTO>();
     }
 }

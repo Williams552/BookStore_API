@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using BookStore_Client.Models;
 using Microsoft.Extensions.Logging;
 using BookStore_Client.Models.ViewModel;
+using System.Text.Json;
+using System.Text;
+using BookStore_Client.Domain.DTO;
 
 namespace BookStore_Client.Controllers
 {
@@ -13,6 +16,7 @@ namespace BookStore_Client.Controllers
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl = "https://localhost:7218/api/OrderService/order";
         private readonly string _userApiUrl = "https://localhost:7202/api/user"; // Giả sử endpoint API cho User
+        private readonly string _cartApiUrl = "https://localhost:7202/api/cart"; // Giả sử endpoint API cho Book
         private readonly ILogger<OrderController> _logger;
 
         public OrderController(HttpClient httpClient, ILogger<OrderController> logger)
@@ -95,7 +99,7 @@ namespace BookStore_Client.Controllers
                 _logger.LogError(ex, "Network error occurred while calling API: {ApiUrl}", _apiUrl);
                 return View(new List<Models.ViewModel.OrderViewModel>());
             }
-            catch (JsonException ex)
+            catch (System.Text.Json.JsonException ex)
             {
                 _logger.LogError(ex, "Failed to deserialize API response: {Data}", await _httpClient.GetStringAsync(_apiUrl));
                 return View(new List<Models.ViewModel.OrderViewModel>());
@@ -168,5 +172,68 @@ namespace BookStore_Client.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Checkout(int paymentMethod, string address)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            // Lấy thông tin giỏ hàng từ API
+            List<Cart> cartItems;
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync($"{_cartApiUrl}/getCartByUserId{userId}");
+                if (!response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = false, message = "Không thể lấy thông tin giỏ hàng." });
+                }
+                var jsonString = await response.Content.ReadAsStringAsync();
+                cartItems = System.Text.Json.JsonSerializer.Deserialize<List<Cart>>(jsonString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                if (cartItems == null || cartItems.Count == 0)
+                {
+                    return Json(new { success = false, message = "Giỏ hàng trống." });
+                }
+            }
+
+            // Tạo OrderDTO
+            var orderDTO = new OrderDTO
+            {
+                UserID = userId.Value,
+                OrderDate = DateOnly.FromDateTime(DateTime.Now),
+                TotalAmount = cartItems.Sum(c => c.TotalPrice ?? 0),
+                PaymentMethod = paymentMethod,
+                Status = "Pending",
+                Address = paymentMethod == 1 ? address : null, // Chỉ lưu địa chỉ khi COD
+                OrderDetails = cartItems.Select(c => new OrderDetailDTO
+                {
+                    BookID = c.BookID.Value,
+                    Quantity = c.Quantity.Value
+                }).ToList()
+            };
+
+            // Gửi yêu cầu tạo Order đến Order API
+            var orderApiUrl = "https://localhost:7218/api/OrderService/Order";
+            var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(orderDTO), Encoding.UTF8, "application/json");
+            var orderResponse = await _httpClient.PostAsync(orderApiUrl, jsonContent);
+
+            if (!orderResponse.IsSuccessStatusCode)
+            {
+                return Json(new { success = false, message = "Tạo đơn hàng thất bại." });
+            }
+
+            // Xóa giỏ hàng sau khi đặt hàng thành công
+            var deleteCartResponse = await _httpClient.DeleteAsync($"{_cartApiUrl}/DeleteCartByUser/{userId}");
+            if (!deleteCartResponse.IsSuccessStatusCode)
+            {
+                // Xử lý lỗi nếu cần
+            }
+
+            return Json(new { success = true, message = "Đặt hàng thành công!" });
+        }
     }
 }
