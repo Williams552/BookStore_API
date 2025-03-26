@@ -26,12 +26,14 @@ public partial class User
     public DateOnly? CreateAt { get; set; }
 
     public DateOnly? UpdateAt { get; set; }
-
+    
     public bool? IsDelete { get; set; }
 
     public int? Role { get; set; }
     public int? OTP { get; set; }
     public DateTime? TimeOtp { get; set; }
+
+    public bool? IsActive { get; set; } = false;
 
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 
@@ -43,7 +45,7 @@ public class password
 {
     [StringLength(50, ErrorMessage = "Username cannot be longer than 50 characters.")]
     public string? Username { get; set; }
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
     [MinLength(5, ErrorMessage = "Password must be at least 5 characters long.")]
     [Required(ErrorMessage = "Password is required.")]

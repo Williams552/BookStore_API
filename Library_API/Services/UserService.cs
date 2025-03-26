@@ -26,7 +26,7 @@ namespace BookStore_API.Services
 
         public async Task<User> Register(UserDTO userDTO)
         {
-            var checkUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == userDTO.Username);
+            var checkUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == userDTO.Username || u.Email == userDTO.Email);
             var hashPassword = BCrypt.Net.BCrypt.HashPassword(userDTO.Password);
             if (checkUser != null) return null;
             var newUser = new User

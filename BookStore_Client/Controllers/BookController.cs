@@ -1,4 +1,4 @@
-﻿using BookStore_API.Domain.DTO;
+﻿
 using BookStore_Client.Models;
 using BookStore_Client.Models.ViewModels;
 using Microsoft.AspNet.SignalR.Json;
@@ -12,13 +12,16 @@ using System.Threading.Tasks;
 
 namespace BookStore_Client.Controllers
 {
-    public class BookController : Controller
+    public class BookController : BaseController
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiUrl = "https://localhost:7202/api/book";
+        private readonly string _apiUrl = "";
+        private readonly string _apiUrlBase = "";
 
         public BookController(HttpClient httpClient)
         {
+            _apiUrl = "https://localhost:7202/api/book";
+            _apiUrlBase = "https://localhost:7202/api";
             _httpClient = httpClient;
         }
 
@@ -45,9 +48,9 @@ namespace BookStore_Client.Controllers
             if (book == null) return NotFound();
 
             // Gọi API lấy Author, Category, Supplier
-            var authorResponse = await _httpClient.GetAsync($"https://localhost:7202/api/author/{book.AuthorID}");
-            var categoryResponse = await _httpClient.GetAsync($"https://localhost:7202/api/category/{book.CategoryID}");
-            var supplierResponse = await _httpClient.GetAsync($"https://localhost:7202/api/supplier/{book.SupplierID}");
+            var authorResponse = await _httpClient.GetAsync($"{_apiUrlBase}/author/{book.AuthorID}");
+            var categoryResponse = await _httpClient.GetAsync($"{_apiUrlBase}/category/{book.CategoryID}");
+            var supplierResponse = await _httpClient.GetAsync($"{_apiUrlBase}/supplier/{book.SupplierID}");
 
             var author = authorResponse.IsSuccessStatusCode ? JsonConvert.DeserializeObject<Author>(await authorResponse.Content.ReadAsStringAsync()) : null;
             var category = categoryResponse.IsSuccessStatusCode ? JsonConvert.DeserializeObject<Category>(await categoryResponse.Content.ReadAsStringAsync()) : null;
@@ -88,6 +91,7 @@ namespace BookStore_Client.Controllers
 
         // POST: Book/Create
         // POST: Book/Create
+        // POST: Book/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookViewModel bookViewModel)
@@ -118,8 +122,8 @@ namespace BookStore_Client.Controllers
                 Stock = bookViewModel.Stock,
                 PublicDate = bookViewModel.PublicDate.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.PublicDate.Value) : null,
                 ImageURL = bookViewModel.ImageURL,
-                UpdateBy = bookViewModel.UpdateBy,
-                UpdateAt = bookViewModel.UpdateAt.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.UpdateAt.Value) : null,
+                UpdateBy = 0, // Giá trị mặc định là 0
+                UpdateAt = DateOnly.FromDateTime(DateTime.Now), // Lấy thời gian hiện tại
                 AuthorID = bookViewModel.AuthorID,
                 CategoryID = bookViewModel.CategoryID,
                 SupplierID = bookViewModel.SupplierID
@@ -210,8 +214,8 @@ namespace BookStore_Client.Controllers
                 AuthorID = bookViewModel.AuthorID,
                 CategoryID = bookViewModel.CategoryID,
                 SupplierID = bookViewModel.SupplierID,
-                UpdateBy = bookViewModel.UpdateBy, // Thêm dòng này
-                UpdateAt = bookViewModel.UpdateAt.HasValue ? (DateOnly?)DateOnly.FromDateTime(bookViewModel.UpdateAt.Value) : null // Thêm dòng này
+                UpdateBy = bookViewModel.UpdateBy, // Giữ nguyên giá trị hiện tại từ hidden field
+                UpdateAt = DateOnly.FromDateTime(DateTime.Now) // Lấy thời gian hiện tại
             };
 
             var json = JsonConvert.SerializeObject(book);
@@ -241,7 +245,7 @@ namespace BookStore_Client.Controllers
         // Hàm gọi API lấy danh sách Authors, Categories, Suppliers
         private async Task<List<Author>> GetAuthors()
         {
-            var response = await _httpClient.GetAsync("https://localhost:7202/api/Author");
+            var response = await _httpClient.GetAsync($"{_apiUrlBase}/Author");
             return response.IsSuccessStatusCode
                 ? JsonConvert.DeserializeObject<List<Author>>(await response.Content.ReadAsStringAsync())
                 : new List<Author>();
@@ -249,7 +253,7 @@ namespace BookStore_Client.Controllers
 
         private async Task<List<Category>> GetCategories()
         {
-            var response = await _httpClient.GetAsync("https://localhost:7202/api/Category");
+            var response = await _httpClient.GetAsync($"{_apiUrlBase}/Category");
             return response.IsSuccessStatusCode
                 ? JsonConvert.DeserializeObject<List<Category>>(await response.Content.ReadAsStringAsync())
                 : new List<Category>();
@@ -257,7 +261,7 @@ namespace BookStore_Client.Controllers
 
         private async Task<List<Supplier>> GetSuppliers()
         {
-            var response = await _httpClient.GetAsync("https://localhost:7202/api/Supplier");
+            var response = await _httpClient.GetAsync($"{_apiUrlBase}/Supplier");
             return response.IsSuccessStatusCode
                 ? JsonConvert.DeserializeObject<List<Supplier>>(await response.Content.ReadAsStringAsync())
                 : new List<Supplier>();

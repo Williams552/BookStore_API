@@ -1,4 +1,4 @@
-﻿@model BookStore_Client.Models.DetailViewModel
+﻿@model BookStore_Client.Models.ViewModel.DetailViewModel
 
 @{
     ViewData["Title"] = "Detail Page";
@@ -93,10 +93,32 @@
 
                         <!-- add to cart buttons -->
                         <div class="d-flex gap-4 align-items-center py-30 border-bottom">
-                            <a href="#" class="btn btn-dark">
-                                <i class="fa-solid fa-plus"></i> 02 <i class="fa-solid fa-minus"></i>
-                            </a>
-                            <a href="@Url.Action("Cart", "Order")" class="btn btn-primary">Add To Cart</a>
+                            <!-- Nút điều chỉnh số lượng -->
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-dark" onclick="changeQuantity(-1)">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <in id="quantity" class="mx-2">1</in>
+                                <button type="button" class="btn btn-dark" onclick="changeQuantity(1)">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+                            <!-- Nút "Add To Cart" -->
+                            <form id="cartForm" asp-action="AddToCart" asp-controller="Cart" method="post">
+                                @if (Model.Book == null)
+                                {
+                                    <p>Lỗi: Model.Book không tồn tại</p>
+                                }
+                                <input type="hidden" name="Cart.BookID" value="@Model.Book.BookID">
+                                <input type="hidden" name="Cart.Quantity" value="1">
+                                <button type="submit" class="btn btn-primary">Add To Cart</button>
+                            </form>
+                            <form asp-action="AddToList" asp-controller="WishList" method="post">
+                                <input type="hidden" name="bookId" value="@Model.Book.BookID" />
+                                <button type="submit" class="like btn btn-default icon-wish-btn">
+                                    <span class="fa fa-heart wish-icon"></span>
+                                </button>
+                            </form>
                         </div>
 
                         <!-- product categories -->
@@ -162,3 +184,42 @@
     </div>
 </section>
 <!--End product section -->
+
+@section Scripts {
+    <script>
+        function changeQuantity(change) {
+            const quantityElement = document.getElementById('quantity');
+            const stockQuantity = @Model.Book.Stock;
+            let currentQuantity = parseInt(quantityElement.textContent);
+            currentQuantity = Math.max(1, Math.min(stockQuantity, currentQuantity + change));
+            quantityElement.textContent = currentQuantity;
+            const quantityInput = document.querySelector('input[name="Cart.Quantity"]');
+            quantityInput.value = currentQuantity;
+        }
+        document.getElementById('cartForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const bookId = document.querySelector('input[name="Cart.BookID"]').value;
+            const quantity = document.querySelector('input[name="Cart.Quantity"]').value;
+            try {
+                const response = await fetch('/Cart/AddToCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `bookId=${bookId}&quantity=${quantity}`
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('Add Successful');
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Lỗi:', error);
+                alert('Please Login');
+            }
+        });
+    </script>
+
+    <partial Name="_ValidationScriptsPartial" />
+}

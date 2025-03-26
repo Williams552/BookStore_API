@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace BookStore_Client.Controllers
 {
-    public class SupplierController : Controller
+    public class SupplierController : BaseController
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl = "https://localhost:7202/api/Supplier";
@@ -49,11 +49,43 @@ namespace BookStore_Client.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Supplier supplier)
         {
-            if (!ModelState.IsValid) return View(supplier);
-            var jsonContent = new StringContent(JsonSerializer.Serialize(supplier), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync(_apiUrl, jsonContent);
-            if (response.IsSuccessStatusCode) return RedirectToAction(nameof(Index));
-            return View(supplier);
+            if (!ModelState.IsValid)
+            {
+                // Log các lỗi validation để debug (tùy chọn)
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine($"Validation Error: {error.ErrorMessage}");
+                }
+                return View(supplier); // Trả lại view với thông báo lỗi validation
+            }
+
+            try
+            {
+                var jsonContent = new StringContent(JsonSerializer.Serialize(supplier), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync(_apiUrl, jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Xử lý lỗi từ API
+                var errorContent = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError(string.Empty, $"Không thể tạo nhà cung cấp. Mã lỗi: {response.StatusCode}. Chi tiết: {errorContent}");
+                return View(supplier);
+            }
+            catch (HttpRequestException ex)
+            {
+                // Xử lý lỗi mạng hoặc kết nối
+                ModelState.AddModelError(string.Empty, $"Lỗi kết nối tới API: {ex.Message}");
+                return View(supplier);
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi chung
+                ModelState.AddModelError(string.Empty, $"Đã xảy ra lỗi: {ex.Message}");
+                return View(supplier);
+            }
         }
 
         // GET: Supplier/Edit/{id}
@@ -71,12 +103,48 @@ namespace BookStore_Client.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Supplier supplier)
         {
-            if (id != supplier.SupplierID) return BadRequest();
-            if (!ModelState.IsValid) return View(supplier);
-            var jsonContent = new StringContent(JsonSerializer.Serialize(supplier), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"{_apiUrl}/{id}", jsonContent);
-            if (response.IsSuccessStatusCode) return RedirectToAction(nameof(Index));
-            return View(supplier);
+            if (id != supplier.SupplierID)
+            {
+                return BadRequest("ID trong URL không khớp với ID của nhà cung cấp.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("❌ ModelState không hợp lệ:");
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine($"Lỗi: {error.ErrorMessage}");
+                }
+                return View(supplier); // Trả lại view với thông báo lỗi validation
+            }
+
+            try
+            {
+                var jsonContent = new StringContent(JsonSerializer.Serialize(supplier), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync($"{_apiUrl}/{id}", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Xử lý lỗi từ API
+                var errorContent = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError(string.Empty, $"Không thể cập nhật nhà cung cấp. Mã lỗi: {response.StatusCode}. Chi tiết: {errorContent}");
+                return View(supplier);
+            }
+            catch (HttpRequestException ex)
+            {
+                // Xử lý lỗi mạng hoặc kết nối
+                ModelState.AddModelError(string.Empty, $"Lỗi kết nối tới API: {ex.Message}");
+                return View(supplier);
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi chung
+                ModelState.AddModelError(string.Empty, $"Đã xảy ra lỗi: {ex.Message}");
+                return View(supplier);
+            }
         }
 
         // GET: Supplier/Delete/{id}

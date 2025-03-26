@@ -5,41 +5,60 @@
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
 }
 
-<div class="container mt-4">
-
-    <div class="card shadow-sm">
-        <div class="card-header bg-success text-white">
-            <h4 class="mb-0">Add New Supplier</h4>
-        </div>
-        <div class="card-body">
-            <form asp-action="Create" method="post">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="SupplierName" class="form-label fw-bold">Supplier Name</label>
-                            <input asp-for="SupplierName" class="form-control" required />
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="Phone" class="form-label fw-bold">Phone</label>
-                            <input asp-for="Phone" class="form-control" required />
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label fw-bold">Email</label>
-                            <input asp-for="Email" class="form-control" type="email" required />
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="Address" class="form-label fw-bold">Address</label>
-                            <input asp-for="Address" class="form-control" required />
-                        </div>
-                    </div>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="mb-0">Add New Supplier</h4>
                 </div>
-                <div class="text-end">
-                    <button type="submit" class="btn btn-success me-2">Create</button>
-                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                <div class="card-body p-4">
+                    <!-- Hiển thị lỗi chung từ ModelState -->
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                        </div>
+                    }
+                    <form asp-action="Create" method="post">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="SupplierName" class="form-label fw-semibold text-muted">Supplier Name</label>
+                                    <input asp-for="SupplierName" class="form-control form-control-lg" required placeholder="Enter supplier name" />
+                                    <span asp-validation-for="SupplierName" class="text-danger"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="Phone" class="form-label fw-semibold text-muted">Phone</label>
+                                    <input asp-for="Phone" class="form-control form-control-lg" required placeholder="0987654321" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label fw-semibold text-muted">Email</label>
+                                    <input asp-for="Email" class="form-control form-control-lg" required placeholder="example@domain.com" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="Address" class="form-label fw-semibold text-muted">Address</label>
+                                    <input asp-for="Address" class="form-control form-control-lg" required placeholder="Enter address" />
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end mt-4">
+                            <button type="submit" class="btn btn-success btn-lg me-2">Create</button>
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Script cho client-side validation -->
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,22 +1,21 @@
-﻿@model BookStore_Client.DTOs.LoginDTO
+﻿@model BookStore_Client.Models.User
 @{
     Layout = null;
 }
 <!DOCTYPE html>
 <html lang="en">
 
-<!-- Mirrored from brandio.io/envato/iofrm/html/register28.html by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 20 Mar 2025 13:04:43 GMT -->
+<!-- Mirrored from brandio.io/envato/iofrm/html/login28.html by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 20 Mar 2025 13:04:09 GMT -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>iofrm</title>
     <link rel="stylesheet" type="text/css" href="~/Accsess/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="~/Accsess/css/fontawesome-all.min.css">
     <link rel="stylesheet" type="text/css" href="~/Accsess/css/iofrm-style.css">
     <link rel="stylesheet" type="text/css" href="~/Accsess/css/iofrm-theme34.css">
 </head>
 <body>
-
 <div class="form-body without-side">
     <div class="iofrm-layout">
         <div class="form-holder">
@@ -33,7 +32,6 @@
                     </div>
                     <div class="item-container bg-accent custom-borders">
                         <h3 class="font-md">Login to account</h3>
-                        <p>Access to the most powerfull tool in the entire design and web industry.</p>
                     </div>
                     <div class="item-container">
                         <form asp-action="Login" method="post">
@@ -41,7 +39,7 @@
                             <input class="form-control" type="password" asp-for="Password" placeholder="Password" required>
                             <div class="form-button d-flex align-items-center">
                                 <button id="submit" type="submit" class="ibtn">Login</button>
-                                <a asp-controller="User" asp-action="ForgotPassword">Forget password?</a>
+                                <a asp-controller="Auth" asp-action="ForgotPassword">Forget password?</a>
                             </div>
                         </form>
                         <div class="page-links pt-3">
@@ -59,5 +57,11 @@
         </div>
     </div>
 </div>
+    <script src="~/Accsess/js/jquery.min.js"></script>
+    <script src="~/Accsess/js/popper.min.js"></script>
+    <script src="~/Accsess/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Accsess/js/main.js"></script>
 </body>
+
+<!-- Mirrored from brandio.io/envato/iofrm/html/login28.html by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 20 Mar 2025 13:04:10 GMT -->
 </html>

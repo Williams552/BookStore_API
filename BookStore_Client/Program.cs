@@ -1,16 +1,20 @@
-using BookStore_API.DataAccess;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<BookStoreContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Services.AddDbContext<BookStoreContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 //new 
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("BookStoreAPI", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7202/"); // ??a ch? base c?a API
+    client.DefaultRequestHeaders.Accept.Clear();
+    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSession(options =>
 {
@@ -28,9 +32,11 @@ builder.Services.AddAuthentication(options =>
 .AddCookie()
 .AddGoogle(options =>
 {
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-    options.CallbackPath = "/signin-google";
+    options.ClientId = builder.Configuration.GetValue<string>("Authentication:Google:ClientId");
+    options.ClientSecret = builder.Configuration.GetValue<string>("Authentication:Google:ClientSecret");
+    options.AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/auth";
+    options.TokenEndpoint = "https://oauth2.googleapis.com/token";
+    options.CallbackPath = new PathString("/signin-google");
 });
 var app = builder.Build();
 

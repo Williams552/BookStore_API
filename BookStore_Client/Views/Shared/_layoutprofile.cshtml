@@ -13,15 +13,20 @@
     <link rel="stylesheet" href="/css/fontawesome/solid.css" rel="stylesheet">
     <link rel='dns-prefetch' href='http://bookpresstheme.com/' />
     <link rel='dns-prefetch' href='http://fonts.googleapis.com/' />
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .dropdown-toggle::after {
+            display: none !important;
+        }
+    </style>
 </head>
 <body data-bs-spy="scroll" data-bs-target="#navbarSupportedContent">
 
     <header id="navbar_top" class="bg-white">
         <div class="container">
-            <nav class="navbar navbar-expand-lg  py-3">
+            <nav class="navbar navbar-expand-lg py-3">
                 <!--site logo -->
                 <a class="navbar-brand" asp-controller="Home" asp-action="Index">
                     <img src="/images/logo.png" alt="Site Logo" width="200">
@@ -50,15 +55,41 @@
 
                     @if (HttpContextAccessor.HttpContext.Session.GetString("Username") != null)
                     {
-                        <a class="nav-link text-dark" asp-controller="User" asp-action="Profile">Welcome, @HttpContextAccessor.HttpContext.Session.GetString("Username")!</a>
-
-
-                       
+                        <div class="nav-item dropdown">
+                            <a class="btn btn-outline-dark ms-2" href="#" role="button" data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <i class="bi-person-fill me-1"></i>
+                                @HttpContextAccessor.HttpContext.Session.GetString("Username")
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="User"
+                                       asp-action="Profile">Profile</a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider" />
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="User"
+                                       asp-action="ChangePassword">Change Password</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="Order"
+                                       asp-action="Historyorder">
+                                        Order History
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="User"
+                                       asp-action="Logout">Logout</a>
+                                </li>
+                            </ul>
+                        </div>
                     }
                     else
                     {
-                        <a class="btn btn-primary" asp-controller="User" asp-action="Login">
-                            Login
+                        <a class="btn btn-outline-dark ms-2" asp-area="" asp-controller="User" asp-action="Login">
+                            <i class="bi-person-fill me-1"></i>Login
                         </a>
                     }
 
@@ -68,7 +99,6 @@
             </nav>
         </div>
     </header>
-
 
     <div class="container">
         <main role="main" class="pb-3">
@@ -81,17 +111,15 @@
 
     <footer class="border-top footer text-muted mt-5">
         <div class="copyright">
-            <p class="my-auto">&copy; 2022 BookPress. All Rights Reserved</p>
+            <p class="my-auto">© 2022 BookPress. All Rights Reserved</p>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-    <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/jquery.waypoints.min.js"></script>
     <script src="/js/jquery.counterup.js"></script>
-    <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/scripts.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)

@@ -5,18 +5,19 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using BookStore_Client.Models;
-using BookStore_API.Domain.DTO;
 using static System.Net.WebRequestMethods;
+using BookStore_Client.Domain.DTO;
 
 namespace BookStore_Client.Controllers
 {
-    public class CategoryController : Controller
+    public class CategoryController : BaseController
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiBaseUrl = "https://localhost:7202/api/Category/";
+        private readonly string _apiBaseUrl = "";
 
         public CategoryController()
         {
+            _apiBaseUrl = "https://localhost:7202/api/Category";
             _httpClient = new HttpClient();
         }
 
@@ -37,7 +38,7 @@ namespace BookStore_Client.Controllers
         // GET: Category/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var response = await _httpClient.GetAsync($"https://localhost:7202/api/Category/{id}");
+            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/{id}");
             if (!response.IsSuccessStatusCode)
             {
                 return NotFound();
@@ -73,7 +74,7 @@ namespace BookStore_Client.Controllers
         // GET: Category/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var response = await _httpClient.GetAsync($"https://localhost:7202/api/Category/{id}");
+            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/{id}");
             if (!response.IsSuccessStatusCode)
             {
                 return NotFound();
@@ -112,7 +113,7 @@ namespace BookStore_Client.Controllers
             var jsonContent = JsonConvert.SerializeObject(categoryDTO);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync($"https://localhost:7202/api/Category/{id}", content);
+            var response = await _httpClient.PutAsync($"{_apiBaseUrl}/{id}", content);
             if (!response.IsSuccessStatusCode)
             {
                 return View(category);
@@ -125,7 +126,7 @@ namespace BookStore_Client.Controllers
         // GET: Category/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var response = await _httpClient.GetAsync($"https://localhost:7202/api/Category/{id}");
+            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/{id}");
             if (!response.IsSuccessStatusCode)
             {
                 return NotFound();
@@ -149,7 +150,7 @@ namespace BookStore_Client.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var response = await _httpClient.DeleteAsync($"https://localhost:7202/api/Category/{id}");
+            var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/{id}");
             if (!response.IsSuccessStatusCode)
             {
                 return BadRequest("Failed to delete category.");

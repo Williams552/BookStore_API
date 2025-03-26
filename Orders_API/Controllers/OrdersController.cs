@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BookStore_Client.Domain.DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Orders_API.Domain.DTO;
 using Orders_API.Models;
@@ -28,14 +29,47 @@ namespace Orders_API.Controllers
 
         // GET: api/order
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders()
+        public async Task<ActionResult<IEnumerable<OrderViewDTO>>> GetAllOrders()
         {
-            var orders = await Task.Run(() => _orderRepository.GetAll());
+            var orders = await Task.Run(() => _orderRepository.GetAll(o => o.OrderDetails));
             if (orders == null || !orders.Any())
             {
                 return NotFound("No orders found.");
             }
-            return Ok(orders);
+
+            var orderDTOs = new List<OrderViewDTO>();
+            foreach (var order in orders)
+            {
+                var orderDTO = _mapperService.MapToDto<Order, OrderViewDTO>(order);
+                var orderDetails = orderDTO.OrderDetails.ToList();
+
+                foreach (var orderDetail in orderDetails)
+                {
+                    try
+                    {
+                        var response = await _httpClient.GetAsync(orderDetail.BookID.ToString());
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var book = await response.Content.ReadFromJsonAsync<BookDTO>();
+                            orderDetail.Book = book;
+                        }
+                        else
+                        {
+                            orderDetail.Book = null;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log lỗi nếu cần
+                        orderDetail.Book = null;
+                    }
+                }
+
+                orderDTO.OrderDetails = orderDetails;
+                orderDTOs.Add(orderDTO);
+            }
+
+            return Ok(orderDTOs);
         }
 
         [HttpGet("{id}")]
@@ -145,6 +179,72 @@ namespace Orders_API.Controllers
             }).ToList();
 
             return Ok(orderDTOs);
+        }
+        // Trong Orders_API.Controllers.OrderController
+        [HttpPut("{id}/confirm")]
+        public async Task<IActionResult> ConfirmOrder(int id)
+        {
+            try
+            {
+                var existingOrder = await _orderRepository.GetById(id, o => o.OrderDetails);
+                if (existingOrder == null)
+                {
+                    return NotFound($"Order with ID {id} not found.");
+                }
+
+                if (existingOrder.Status != "Pending")
+                {
+                    return BadRequest("Only orders with 'Pending' status can be confirmed.");
+                }
+
+                // Gọi API cập nhật stock cho từng sách
+                foreach (var detail in existingOrder.OrderDetails)
+                {
+                    var response = await _httpClient.PutAsJsonAsync(
+                        $"Book/updateStock/{detail.BookID}",
+                        detail.Quantity);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // Rollback xác nhận đơn hàng nếu có lỗi
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        return BadRequest($"Failed to update stock for book {detail.BookID}: {errorContent}");
+                    }
+                }
+
+                existingOrder.Status = "Accept";
+                await _orderRepository.Update(existingOrder);
+
+                return Ok(existingOrder);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("earnings")]
+        public async Task<ActionResult<EarningsDTO>> GetEarnings([FromQuery] int year, [FromQuery] int month)
+        {
+            // Kiểm tra giá trị hợp lệ
+            if (month < 1 || month > 12)
+            {
+                return BadRequest("Month must be between 1 and 12.");
+            }
+            if (year < 1900 || year > DateTime.Now.Year)
+            {
+                return BadRequest($"Year must be between 1900 and {DateTime.Now.Year}.");
+            }
+
+            try
+            {
+                var earnings = await _orderService.GetEarnings(year, month);
+                return Ok(earnings);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error retrieving earnings: {ex.Message}");
+            }
         }
     }
 }

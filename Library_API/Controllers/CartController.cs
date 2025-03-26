@@ -21,21 +21,9 @@ namespace BookStore_API.Controllers
             _cartService = cartService;
         }
 
-        // GET: api/cart
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cart>>> GetAllCarts()
-        {
-            var carts = await Task.Run(() => _cartRepository.GetAll());
-            if (carts == null || !carts.Any())
-            {
-                return NotFound("No carts found.");
-            }
-            return Ok(carts);
-        }
-
         // GET: api/cart/{id}
-        [HttpGet("getCartByUserId{id}")]
-        public async Task<ActionResult<Cart>> GetCartById(int id)
+        [HttpGet("getCartByUserId/{id}")]
+        public async Task<ActionResult<IEnumerable<Cart>>> GetCartById(int id)
         {
             var cart = await _cartService.GetCartByUserID(id);
             if (cart == null)
@@ -46,12 +34,12 @@ namespace BookStore_API.Controllers
         }
 
         // POST: api/cart
-        [HttpPost("Upsert")]
-        public async Task<ActionResult<Cart>> Upsert(int bookId, int userId, int quantity)
+        [HttpPost("AddToCart")]
+        public async Task<ActionResult<Cart>> AddToCart(int bookId, int userId, int quantity)
         {
             try
             {
-                var cart = await _cartService.Upsert(bookId, userId, quantity);
+                var cart = await _cartService.AddToCart(bookId, userId, quantity);
                 return Ok(cart);
             }
             catch (ArgumentException ex)
@@ -64,25 +52,27 @@ namespace BookStore_API.Controllers
             }
         }
 
-        // PUT: api/cart/{id}
-        [HttpPut("updateCart{id}")]
-        public async Task<IActionResult> UpdateCart(int id, CartDTO cartDTO)
+        // POST: api/cart
+        [HttpPost("Upsert")]
+        public async Task<ActionResult<Cart>> Upsert(int bookId, int userId, int quantity)
         {
-            if (id != cartDTO.CartID)
+            try
             {
-                return BadRequest("Cart ID mismatch.");
+                var cart = await _cartService.Upsert(bookId, userId, quantity);
+                if (cart == null)
+                {
+                    return NoContent();
+                }
+                return Ok(cart);
             }
-
-            var existingCart = await Task.Run(() => _cartRepository.GetById(id));
-            if (existingCart == null)
+            catch (ArgumentException ex)
             {
-                return NotFound($"Cart with ID {id} not found.");
+                return BadRequest(ex.Message);
             }
-
-            var cart = _mapperService.MapToDto<CartDTO, Cart>(cartDTO);
-
-            await Task.Run(() => _cartRepository.Update(cart));
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi hệ thống: " + ex.Message);
+            }
         }
 
         // DELETE: api/cart/{id}
@@ -95,6 +85,27 @@ namespace BookStore_API.Controllers
                 return NotFound($"Cart not exist.");
             }
             return Ok(cart);
+        }
+
+        // DELETE: api/cart/deleteCartByUser/{userId}
+        [HttpDelete("deleteCartByUser/{userId}")]
+        public async Task<IActionResult> DeleteCartByUser(int userId)
+        {
+            try
+            {
+                var result = await _cartService.DeleteCartByUser(userId);
+
+                if (result)
+                {
+                    return Ok($"All cart items for user {userId} have been deleted.");
+                }
+
+                return NotFound($"No cart items found for user {userId}.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while deleting cart items: {ex.Message}");
+            }
         }
     }
 }

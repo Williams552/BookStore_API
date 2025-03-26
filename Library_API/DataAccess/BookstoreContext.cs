@@ -24,6 +24,10 @@ public partial class BookStoreContext : DbContext
 
     public virtual DbSet<Category> Categories { get; set; }
 
+    public virtual DbSet<Order> Orders { get; set; }
+
+    public virtual DbSet<OrderDetail> OrderDetails { get; set; }
+
     public virtual DbSet<Supplier> Suppliers { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -85,6 +89,33 @@ public partial class BookStoreContext : DbContext
         {
             entity.Property(e => e.CategoryID).HasColumnName("CategoryID");
             entity.Property(e => e.Description).HasColumnType("text");
+        });
+
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.Property(e => e.OrderID).HasColumnName("OrderID");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.UserID).HasColumnName("UserID");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.UserID)
+                .HasConstraintName("FK_Orders_User");
+        });
+
+        modelBuilder.Entity<OrderDetail>(entity =>
+        {
+            entity.Property(e => e.OrderDetailID).HasColumnName("OrderDetailID");
+            entity.Property(e => e.BookID).HasColumnName("BookID");
+            entity.Property(e => e.OrderID).HasColumnName("OrderID");
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.OrderDetails)
+                .HasForeignKey(d => d.BookID)
+                .HasConstraintName("FK_OrderDetails_Books");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
+                .HasForeignKey(d => d.OrderID)
+                .HasConstraintName("FK_OrderDetails_Orders");
         });
 
         modelBuilder.Entity<Supplier>(entity =>

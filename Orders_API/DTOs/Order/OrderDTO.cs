@@ -16,6 +16,8 @@ namespace Orders_API.Domain.DTO
         public int? PaymentMethod { get; set; }
 
         public string? Status { get; set; }
+        public string? Address { get; set; }
+
         public ICollection<OrderDetailDTO> OrderDetails { get; set; } = new List<OrderDetailDTO>();
     }
 }

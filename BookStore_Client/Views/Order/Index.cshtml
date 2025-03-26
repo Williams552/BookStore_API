@@ -1,0 +1,107 @@
+﻿@model List<BookStore_Client.Models.ViewModel.OrderViewModel>
+
+@{
+    ViewData["Title"] = "Order Management";
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Order Management</h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Hiển thị thông báo -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th scope="col">User Name</th>
+                                    <th scope="col">Order Date</th>
+                                    <th scope="col">Total Amount</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Order Details</th> <!-- Thêm cột Details -->
+                                    <th scope="col" class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var order in Model)
+                                    {
+                                        <tr>
+                                            <td>@order.UserFullName</td>
+                                            <td>@(order.OrderDate.HasValue ? order.OrderDate.Value.ToString("yyyy-MM-dd") : "N/A")</td>
+                                            <td>@(order.TotalAmount.HasValue ? order.TotalAmount.Value.ToString("C") : "N/A")</td>
+                                            <td>@order.Status</td>
+                                            <td>
+                                                @if (order.OrderDetails != null && order.OrderDetails.Any())
+                                                {
+                                                    <ul class="list-unstyled">
+                                                        @foreach (var detail in order.OrderDetails)
+                                                        {
+                                                            <li>
+                                                                <img src="@(detail.Book?.ImageURL ?? "/uploads/default.jpg")" alt="Book Image" style="width: 50px; height: 50px; margin-right: 10px;" />
+                                                                @detail.Book?.Title (@detail.Quantity)
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                }
+                                                else
+                                                {
+                                                    <span>No details available</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (order.Status == "Pending")
+                                                {
+                                                    <form asp-action="ConfirmOrder" method="post" style="display:inline;">
+                                                        <input type="hidden" name="id" value="@order.OrderID" />
+                                                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to confirm this order?');">Confirm</button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Confirmed</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No orders found.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-unstyled li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+</style>

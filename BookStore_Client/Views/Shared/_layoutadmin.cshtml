@@ -16,12 +16,14 @@
             <h4 class="p-3 text-center">Admin Panel</h4>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="@Url.Action("Order", "Admin")">📦 Orders</a>
+                    <a class="nav-link text-white" href="@Url.Action("Index", "Home")">🏠 Home Page</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="@Url.Action("Index", "Order")">📦 Orders</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="@Url.Action("Index", "Category")">📂 Categories</a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link text-white" href="@Url.Action("Index", "Book")">📖 Book</a>
                 </li>
@@ -29,16 +31,19 @@
                     <a class="nav-link text-white" href="@Url.Action("Index", "Supplier")">🛒 Supplier</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="@Url.Action("Profile", "Admin")">👤 Profile</a>
+                    <a class="nav-link text-white" href="@Url.Action("Index", "User")">👤 Profile</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="@Url.Action("index", "Author")">💳 Author</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="@Url.Action("Earnings", "Order")">💰 Earnings</a>
                 </li>
 
             </ul>
 
             <div class="d-grid p-3">
-                <a href="@Url.Action("Index", "Home")" class="btn btn-danger">🚪 Logout</a>
+                <a href="@Url.Action("Logout", "User")" class="btn btn-danger">🚪 Logout</a>
             </div>
         </nav>
 
@@ -49,12 +54,12 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
 </body>
 </html>
 
 @if (User.Identity.IsAuthenticated)
 {
-    <p>Welcome, @User.Identity.Name!</p>
     <a asp-controller="Account" asp-action="Logout">Logout</a>
 }
 else

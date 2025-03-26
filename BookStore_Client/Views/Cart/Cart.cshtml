@@ -1,0 +1,230 @@
+﻿@model List<Cart>
+@{
+    ViewData["Title"] = "Cart Page";
+}
+
+<!-- Product-card section -->
+<section class="product-card-section mt-3 pt-5">
+    <div class="container">
+        <div class="row gx-5 gy-5 px-1 py-2">
+            <div class="col-md-12">
+                <div class="">
+                    <table class="card-table bg-white my-4">
+                        <thead class="card-thead">
+                            <tr class="">
+                                <th class="card-th text-center px-5">
+                                    <span class="text-white card-th-span">Action</span>
+                                </th>
+                                <th class="card-th text-center">
+                                    <span class="text-white card-th-span">Product</span>
+                                </th>
+                                <th class="card-th text-center px-5">
+                                    <span class="text-white card-th-span">Price</span>
+                                </th>
+                                <th class="card-th text-center px-5">
+                                    <span class="text-white card-th-span">Quantity</span>
+                                </th>
+                                <th class="card-th text-center px-5">
+                                    <span class="text-white card-th-span">Subtotal</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="tbody-background">
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="ps-5 pe-2">
+                                        <form asp-controller="Cart" asp-action="Delete" method="post">
+                                            <input type="hidden" name="bookId" value="@item.Book.BookID" />
+                                            <button type="submit" class="btn btn-link text-decoration-none text-primary">
+                                                <h5><span class="bi bi-x-circle-fill pe-2"></span>Remove</h5>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td class="p-5">
+                                        <div class="row gy-3">
+                                            <div class="col-xl-4">
+                                                <img src="@item.Book.ImageURL" alt="Card img"
+                                                     class="img-fluid bg-white p-2">
+                                            </div>
+                                            <div class="col-xl-8 align-self-center">
+                                                <h5>@item.Book.Title</h5>
+                                                <p>@item.Book.Description</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <h5>$@item.Book.Price</h5>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="quantity buttons_added">
+                                            <input type="button" value="-" class="minus bg-primary text-white me-0 fs-3"
+                                                   onclick="decrementQuantity(@item.Book.BookID)">
+
+                                            <input type="number" step="1" min="0" max="@item.Book.Stock"
+                                                   name="quantity" value="@item.Quantity"
+                                                   onchange="updateCartItem(@item.Book.BookID, this.value)"
+                                                   title="Qty" class="input-text qty fs-3 text-center bg-primary text-white">
+
+                                            <input type="button" value="+" class="plus fs-3 ms-0 bg-primary text-white"
+                                                   onclick="incrementQuantity(@item.Book.BookID)">
+                                        </div>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <h5 id="total-price-@item.Book.BookID">$@(item.Book.Price * item.Quantity)</h5>
+                                    </td>
+
+
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End product-card section -->
+<!-- Card-total section  -->
+<!-- Checkout Section -->
+
+<section class="card-total pt-2 pb-5">
+    <div class="container">
+                <div class="col">
+                    <table class="card-table my-4">
+                        <thead class="card-thead">
+                            <tr class="border-bottom">
+                                <th class="text-start"></th>
+                                <th class="card-th text-end px-5">
+                                    <span class="text-white card-th-span">Cart Totals</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="cart-input">
+                            <tr class="border-top">
+                                @{
+                                    int cartItemCount = Model.Sum(item => item.Quantity) ?? 0;
+                                    Context.Session.SetInt32("CartItemCount", cartItemCount);
+                                }
+
+                                <td class="text-start">
+                                    <h5>Items</h5>
+                                </td>
+                                <td class="text-end">
+                                    <h5>@Model.Sum(item => item.Quantity)</h5>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-start">
+                                    <h5>Shipping</h5>
+                                </td>
+                                <td class="text-end">
+                                    <h5>Free</h5>
+                                </td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="text-start">
+                                    <h5>Total</h5>
+                                </td>
+                                <td class="text-end">
+                                    <h5>$@Model.Sum(item => item.Quantity * item.Book.Price)</h5>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                     <form asp-controller="Order" asp-action="Checkout" method="post" id="checkoutForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <!-- Payment Method -->
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Payment Method</label>
+                                    <select class="form-select" name="paymentMethod" id="paymentMethod" onchange="toggleAddressField()">
+                                        <option value="1">COD (Cash on Delivery)</option>
+                                        <option value="2">Bank Transfer</option>
+                                    </select>
+                                </div>
+
+                                <!-- Address Field (Conditional) -->
+                                <div class="form-group mb-3" id="addressField" style="display: none;">
+                                    <label class="form-label">Delivery Address</label>
+                                    <input type="text" class="form-control" name="address"
+                                           placeholder="Enter your address" required>
+                                </div>
+
+                                <!-- Checkout Button -->
+                                <button type="submit" class="btn btn-primary w-100 mt-3">
+                                    Place Order
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                </div>
+    </div>
+</section>
+
+
+
+<!-- End card-total section  -->
+@section Scripts {
+    <script>
+        function updateCartItem(bookId, quantity) {
+            fetch('/Cart/Upsert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `bookId=${bookId}&quantity=${quantity}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Find the specific total price element for this book
+                        let totalPriceElement = document.querySelector(`#total-price-${bookId}`);
+                        let pricePerItem = parseFloat(totalPriceElement.closest('tr').querySelector('td:nth-child(3) h5').textContent.replace('$', ''));
+                        totalPriceElement.textContent = `$${(pricePerItem * quantity).toFixed(2)}`;
+
+                        // Update cart totals
+                        updateCartTotals();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        function incrementQuantity(bookId) {
+            let input = document.querySelector(`#total-price-${bookId}`).closest('tr').querySelector('input[name="quantity"]');
+            let currentValue = parseInt(input.value);
+            let maxValue = parseInt(input.getAttribute("max"));
+
+            if (currentValue < maxValue) {
+                input.value = currentValue + 1;
+                updateCartItem(bookId, input.value);
+            }
+        }
+        function decrementQuantity(bookId) {
+            let input = document.querySelector(`#total-price-${bookId}`).closest('tr').querySelector('input[name="quantity"]');
+            let currentValue = parseInt(input.value);
+            if (currentValue > 0) {
+                input.value = currentValue - 1;
+                updateCartItem(bookId, input.value);
+            }
+        }
+        function updateCartTotals() {
+            let totalItems = 0;
+            let totalPrice = 0;
+            document.querySelectorAll('input[name="quantity"]').forEach(input => {
+                let quantity = parseInt(input.value);
+                let priceElement = input.closest('tr').querySelector('td:nth-child(3) h5');
+                let price = parseFloat(priceElement.textContent.replace('$', ''));
+                totalItems += quantity;
+                totalPrice += quantity * price;
+            });
+            document.querySelector('.cart-input tr:first-child td:last-child h5').textContent = totalItems;
+            document.querySelector('.cart-input tr:last-child td:last-child h5').textContent = `$${totalPrice.toFixed(2)}`;
+        }
+    </script>
+    <partial Name="_ValidationScriptsPartial" />
+}
