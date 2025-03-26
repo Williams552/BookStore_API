@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BookStore_Client.Models;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Net.Http;
 using System.Text;
@@ -7,31 +8,25 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BookStore_Client.Controllers
 {
-    [Route("Profile")] // Đơn giản hóa route, bỏ "api/Profile/[controller]"
-    public class ProfileController : Controller // Không dùng [ApiController] để hỗ trợ trả về View
+    public class ProfileController : Controller
     {
-        private readonly string _apiBaseUrl = "https://localhost:7202/api/User";
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _apiBaseUrl = "https://localhost:7202/api/User";
 
-        public ProfileController(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, HttpClient httpClient)
+        public ProfileController(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
-            _httpContextAccessor = httpContextAccessor;
-            _httpClient = httpClient;
-            var contentType = new MediaTypeWithQualityHeaderValue("application/json");
-            _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
         }
 
-        [HttpGet("profile")]
-        public async Task<IActionResult> Profile()
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
             var client = _httpClientFactory.CreateClient();
             try
-            try
+            {
                 int userId = HttpContext.Session.GetInt32("UserId") ?? 1; // Lấy từ session thay vì cố định
                 var response = await client.GetAsync($"{_apiBaseUrl}/{userId}");
-                var response = await client.GetAsync($"{_apiBaseUrl}/{userId}");
+
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonString = await response.Content.ReadAsStringAsync();
@@ -45,49 +40,18 @@ namespace BookStore_Client.Controllers
                 {
                     ViewBag.ErrorMessage = $"User with ID {userId} not found.";
                     return View();
+                }
+                else
+                {
+                    ViewBag.ErrorMessage = "Unable to fetch profile data.";
                     return View();
                 }
-
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await ImageFile.CopyToAsync(stream);
-                }
-
-                imageUrl = $"/uploads/{fileName}";
             }
-
-            var httpClient = _httpClientFactory.CreateClient();
-            var apiUrl = $"{_apiBaseUrl}/{currentUser.UserID}";
-            var userDTO = new UserDTO
+            catch (Exception ex)
             {
-                UserID = currentUser.UserID,
-                Username = updatedUser.Username,
-                FullName = updatedUser.FullName,
-                Email = updatedUser.Email,
-                Phone = updatedUser.Phone,
-                Address = updatedUser.Address,
-                Gender = updatedUser.Gender,
-                ImageUrl = imageUrl
-            };
-
-            Console.WriteLine($"Sending to API: {JsonConvert.SerializeObject(userDTO)}");
-
-            var response = await httpClient.PutAsJsonAsync(apiUrl, userDTO);
-
-            if (response.IsSuccessStatusCode)
-            {
-                updatedUser.ImageUrl = imageUrl;
-                updatedUser.CreateAt = currentUser.CreateAt;
-                updatedUser.IsDelete = currentUser.IsDelete;
-                updatedUser.Role = currentUser.Role;
-                var updatedUserJson = JsonConvert.SerializeObject(updatedUser);
-                HttpContext.Session.SetString("customerInfo", updatedUserJson);
-                HttpContext.Session.SetString("Username", updatedUser.Username ?? updatedUser.FullName);
-
-                return RedirectToAction("Profile");
+                ViewBag.ErrorMessage = $"An error occurred: {ex.Message}";
+                return View();
+            }
         }
 
         [HttpGet]
@@ -126,7 +90,6 @@ namespace BookStore_Client.Controllers
             }
 
             return View(new ChangePasswordViewModel());
-            }
         }
 
         [HttpPost]
@@ -190,6 +153,7 @@ namespace BookStore_Client.Controllers
         public string NewPassword { get; set; }
 
         [Required(ErrorMessage = "Xác nhận mật khẩu là bắt buộc.")]
+
         [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp với mật khẩu mới.")]
         public string ConfirmPassword { get; set; }
     }
@@ -199,7 +163,4 @@ namespace BookStore_Client.Controllers
     {
         public string Message { get; set; }
     }
-
-
-    //something to commit?
 }
