@@ -24,7 +24,7 @@ namespace Orders_API.Controllers
             _mapperService = mapperService;
             _orderService = orderService;
             _httpClient = httpClient.CreateClient();
-            _httpClient.BaseAddress = new Uri("https://localhost:7202/api/");
+            _httpClient.BaseAddress = new Uri("https://localhost:7202/api/Book/");
         }
 
         // GET: api/order
@@ -201,7 +201,7 @@ namespace Orders_API.Controllers
                 foreach (var detail in existingOrder.OrderDetails)
                 {
                     var response = await _httpClient.PutAsJsonAsync(
-                        $"Book/updateStock/{detail.BookID}",
+                        $"updateStock/{detail.BookID}",
                         detail.Quantity);
 
                     if (!response.IsSuccessStatusCode)
