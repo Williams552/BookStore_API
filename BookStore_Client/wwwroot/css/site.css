@@ -78,3 +78,11 @@ body {
     font-weight: 700;
     align-items: center;
 }
+
+.search-icon {
+    transition: opacity 0.3s ease;
+}
+
+    .search-icon.hidden {
+        opacity: 0;
+    }
