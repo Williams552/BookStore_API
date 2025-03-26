@@ -30,20 +30,4 @@ namespace BookStore_Client.Domain.DTO
         public string Status { get; set; }
         public List<OrderDetailDTO> OrderDetails { get; set; }
     }
-    public class OrderDetailDTO
-    {
-        public int OrderDetailID { get; set; }
-        public int OrderID { get; set; }
-        public int BookID { get; set; }
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
-        public BookDTO Book { get; set; }
-    }
-
-    public class BookDTO
-    {
-        public int BookID { get; set; }
-        public string Title { get; set; }
-        public string ImageURL { get; set; } // Gi? ??nh API có ImageURL
-    }
 }

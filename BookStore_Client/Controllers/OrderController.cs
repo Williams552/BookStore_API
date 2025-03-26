@@ -222,12 +222,6 @@ namespace BookStore_Client.Controllers
             {
                 return RedirectToAction("Login", "User");
             }
-                _logger.LogError(ex, "Failed to connect to Orders_API: {Url}", $"{_apiUrl}/user/{userId}");
-                ViewBag.ErrorMessage = "Cannot connect to Orders API. " + ex.Message;
-                return View(new List<OrderViewModel>());
-            }
-        }
-    } 
 
             // Lấy thông tin giỏ hàng từ API
             List<Cart> cartItems;
@@ -283,5 +277,6 @@ namespace BookStore_Client.Controllers
 
             return Json(new { success = true, message = "Đặt hàng thành công!" });
         }
+
     }
 }
