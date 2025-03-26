@@ -13,15 +13,20 @@
     <link rel="stylesheet" href="/css/fontawesome/solid.css" rel="stylesheet">
     <link rel='dns-prefetch' href='http://bookpresstheme.com/' />
     <link rel='dns-prefetch' href='http://fonts.googleapis.com/' />
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+        .dropdown-toggle::after {
+            display: none !important;
+        }
+    </style>
 </head>
 <body data-bs-spy="scroll" data-bs-target="#navbarSupportedContent">
 
     <header id="navbar_top" class="bg-white">
         <div class="container">
-            <nav class="navbar navbar-expand-lg  py-3">
+            <nav class="navbar navbar-expand-lg py-3">
                 <!--site logo -->
                 <a class="navbar-brand" asp-controller="Home" asp-action="Index">
                     <img src="/images/logo.png" alt="Site Logo" width="200">
@@ -48,12 +53,28 @@
                         </li>
                     </ul>
 
-                    @if (HttpContextAccessor.HttpContext.Session.GetString("Username") != null)
+                    @if (HttpContextAccessor.HttpContext.Session.GetString("customerInfo") != null)
                     {
-                        <a class="nav-link text-dark" asp-controller="User" asp-action="Profile">Welcome, @HttpContextAccessor.HttpContext.Session.GetString("Username")!</a>
+                        var userDataJson = HttpContextAccessor.HttpContext.Session.GetString("customerInfo");
+                        var user = Newtonsoft.Json.JsonConvert.DeserializeObject<BookStore_Client.Models.User>(userDataJson);
 
-
-                       
+                        <div class="dropdown">
+                            <a class="dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="@user.ImageUrl" alt="User Profile" style="width: 40px; height: 40px; border-radius: 50%;"
+                                     onerror="this.onerror=null; this.src='/uploads/default.jpg';" />
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li>
+                                    <a class="dropdown-item" asp-controller="User" asp-action="Profile">View Profile</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Order" asp-action="HistoryOrder">History Order</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-controller="User" asp-action="Logout">Log out</a>
+                                </li>
+                            </ul>
+                        </div>
                     }
                     else
                     {
@@ -69,7 +90,6 @@
         </div>
     </header>
 
-
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -81,17 +101,15 @@
 
     <footer class="border-top footer text-muted mt-5">
         <div class="copyright">
-            <p class="my-auto">&copy; 2022 BookPress. All Rights Reserved</p>
+            <p class="my-auto">© 2022 BookPress. All Rights Reserved</p>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
-    <script src="/js/jquery-3.6.0.min.js"></script>
     <script src="/js/jquery.waypoints.min.js"></script>
     <script src="/js/jquery.counterup.js"></script>
-    <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/scripts.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)

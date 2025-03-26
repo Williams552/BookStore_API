@@ -2,6 +2,7 @@
 using BookStore_Client.Models;
 using System.Text;
 using System.Text.Json;
+using System.Text.Encodings.Web;
 
 namespace BookStore_Client.Controllers
 {
@@ -49,15 +50,22 @@ namespace BookStore_Client.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
             {
-                return Json(new { success = false, message = "Vui lòng đăng nhập!" });
+                return RedirectToAction("Login", "User");
             }
             var requestUrl = $"{_apiUrl}/AddToCart?bookId={bookId}&userId={userId}&quantity={quantity}";
             var response = await _httpClient.PostAsync(requestUrl, new StringContent("", Encoding.UTF8, "application/json"));
             if (!response.IsSuccessStatusCode)
             {
-                return Json(new { success = false, message = "Số lượng sách còn lại không đủ!" });
+                return Json(new { success = false, message = "Thêm thất bại!" }, new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                });
+
             }
-            return Json(new { success = true, message = "Thêm sản phẩm thành công!" });
+            return Json(new { success = true, message = "Thêm thành công!" }, new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
         }
 
 
