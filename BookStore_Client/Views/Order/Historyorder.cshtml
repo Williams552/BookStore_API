@@ -1,7 +1,6 @@
 ﻿@model List<BookStore_Client.Models.ViewModel.OrderViewModel>
 @{
     Layout = "~/Views/Shared/_layoutprofile.cshtml";
-    ViewData["Title"] = "User Profile";
 }
 <h2>Order History</h2>
 
@@ -17,7 +16,6 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>Order ID</th>
                 <th>Order Date</th>
                 <th>Total Amount</th>
                 <th>Payment Method</th>
@@ -29,10 +27,18 @@
             @foreach (var order in Model)
             {
                 <tr>
-                    <td>@order.OrderID</td>
                     <td>@(order.OrderDate.HasValue ? order.OrderDate.Value.ToString("dd/MM/yyyy") : "N/A")</td>
                     <td>@(order.TotalAmount.HasValue ? order.TotalAmount.Value.ToString("C") : "N/A")</td>
-                    <td>@order.PaymentMethod</td>
+                    <td>
+                        @if (order.PaymentMethod.HasValue)
+                        {
+                            @(order.PaymentMethod.Value == 1 ? "COD" : order.PaymentMethod.Value == 2 ? "Bank" : "N/A")
+                        }
+                        else
+                        {
+                            @:N/A
+                        }
+                    </td>
                     <td>@order.Status</td>
                     <td>
                         @if (order.OrderDetails.Any())
@@ -67,10 +73,12 @@ else
     .table th, .table td {
         vertical-align: middle;
     }
+
     .table ul {
         margin: 0;
         padding-left: 20px;
     }
+
     .table img {
         margin-left: 10px;
     }

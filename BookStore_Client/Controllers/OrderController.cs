@@ -9,12 +9,14 @@ using System.Text.Json;
 using System.Text;
 using BookStore_Client.Domain.DTO;
 
+
+
 namespace BookStore_Client.Controllers
 {
     public class OrderController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiUrl = "https://localhost:7218/api/OrderService/order";
+        private readonly string _apiUrl = "https://localhost:7218/api/OrderService/Order";
         private readonly string _userApiUrl = "https://localhost:7202/api/user"; // Giả sử endpoint API cho User
         private readonly string _cartApiUrl = "https://localhost:7202/api/cart"; // Giả sử endpoint API cho Book
         private readonly ILogger<OrderController> _logger;
@@ -22,6 +24,7 @@ namespace BookStore_Client.Controllers
         public OrderController(HttpClient httpClient, ILogger<OrderController> logger)
         {
             _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri(_apiUrl);
             _logger = logger;
         }
 
@@ -57,6 +60,7 @@ namespace BookStore_Client.Controllers
                     return View(new List<Models.ViewModel.OrderViewModel>());
                 }
 
+                // Tạo danh sách OrderViewModel và lấy FullName từ API User
                 var orderViewModels = new List<Models.ViewModel.OrderViewModel>();
                 foreach (var order in orders)
                 {
@@ -143,29 +147,67 @@ namespace BookStore_Client.Controllers
 
         public async Task<IActionResult> HistoryOrder()
         {
-            // Lấy userId từ session (hoặc token, tùy cách bạn lưu thông tin user)
             var userId = HttpContext.Session.GetInt32("UserId");
+            _logger.LogInformation("Session UserId: {UserId}", userId);
             if (!userId.HasValue)
             {
+                _logger.LogWarning("UserId not found in session.");
                 return RedirectToAction("Login", "User");
             }
 
-
-
-
-
-            var response = await _httpClient.GetAsync($"user/{userId}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var content = await response.Content.ReadAsStringAsync();
-                var orders = JsonConvert.DeserializeObject<List<Models.ViewModel.OrderViewModel>>(content);
-                return View(orders);
+                var requestUrl = $"{_apiUrl}/user/{userId}";
+                _logger.LogInformation("Calling Orders_API: {Url}", requestUrl);
+                var response = await _httpClient.GetAsync($"{_apiUrl}/user/{userId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("Response: {Content}", content);
+                    var apiOrders = JsonConvert.DeserializeObject<List<OrderViewDTO1>>(content);
+
+                    if (apiOrders == null || !apiOrders.Any())
+                    {
+                        ViewBag.ErrorMessage = "No orders found.";
+                        return View(new List<OrderViewModel>());
+                    }
+
+                    var orders = apiOrders.Select(o => new OrderViewModel
+                    {
+                        OrderID = o.OrderID,
+                        UserID = o.UserID,
+                        OrderDate = o.OrderDate.HasValue ? DateOnly.FromDateTime(o.OrderDate.Value) : null,
+                        Status = o.Status,
+                        TotalAmount = o.TotalAmount,
+                        PaymentMethod = o.PaymentMethod,
+                        OrderDetails = o.OrderDetails?.Select(d => new OrderDetailViewModel
+                        {
+                            OrderDetailID = d.OrderDetailID,
+                            OrderID = d.OrderID,
+                            BookID = d.BookID,
+                            Quantity = d.Quantity,
+                            UnitPrice = d.UnitPrice,
+                            Book = d.Book != null ? new BookViewModel
+                            {
+                                BookID = d.Book.BookID,
+                                Title = d.Book.Title,
+                                ImageURL = d.Book.ImageURL
+                            } : null
+                        }).ToList() ?? new List<OrderDetailViewModel>()
+                    }).ToList();
+
+                    return View(orders);
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("API error. Status: {StatusCode}, Response: {ErrorContent}", response.StatusCode, errorContent);
+                    ViewBag.ErrorMessage = $"API error: {response.StatusCode}. Response: {errorContent}";
+                    return View(new List<OrderViewModel>());
+                }
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                return RedirectToAction("Login", "User");
-            }
-            else
+            catch (HttpRequestException ex)
             {
                 ViewBag.ErrorMessage = "Unable to load order history.";
                 return View(new List<Models.ViewModel.OrderViewModel>());
@@ -180,6 +222,12 @@ namespace BookStore_Client.Controllers
             {
                 return RedirectToAction("Login", "User");
             }
+                _logger.LogError(ex, "Failed to connect to Orders_API: {Url}", $"{_apiUrl}/user/{userId}");
+                ViewBag.ErrorMessage = "Cannot connect to Orders API. " + ex.Message;
+                return View(new List<OrderViewModel>());
+            }
+        }
+    } 
 
             // Lấy thông tin giỏ hàng từ API
             List<Cart> cartItems;

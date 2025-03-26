@@ -53,33 +53,43 @@
                         </li>
                     </ul>
 
-                    @if (HttpContextAccessor.HttpContext.Session.GetString("customerInfo") != null)
+                    @if (HttpContextAccessor.HttpContext.Session.GetString("Username") != null)
                     {
-                        var userDataJson = HttpContextAccessor.HttpContext.Session.GetString("customerInfo");
-                        var user = Newtonsoft.Json.JsonConvert.DeserializeObject<BookStore_Client.Models.User>(userDataJson);
-
-                        <div class="dropdown">
-                            <a class="dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="@user.ImageUrl" alt="User Profile" style="width: 40px; height: 40px; border-radius: 50%;"
-                                     onerror="this.onerror=null; this.src='/uploads/default.jpg';" />
+                        <div class="nav-item dropdown">
+                            <a class="btn btn-outline-dark ms-2" href="#" role="button" data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <i class="bi-person-fill me-1"></i>
+                                @HttpContextAccessor.HttpContext.Session.GetString("Username")
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <li>
-                                    <a class="dropdown-item" asp-controller="User" asp-action="Profile">View Profile</a>
+                                    <a class="dropdown-item" asp-area="" asp-controller="User"
+                                       asp-action="Profile">Profile</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" asp-controller="Order" asp-action="HistoryOrder">History Order</a>
+                                    <hr class="dropdown-divider" />
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" asp-controller="User" asp-action="Logout">Log out</a>
+                                    <a class="dropdown-item" asp-area="" asp-controller="User"
+                                       asp-action="ChangePassword">Change Password</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="Order"
+                                       asp-action="Historyorder">
+                                        Order History
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-area="" asp-controller="User"
+                                       asp-action="Logout">Logout</a>
                                 </li>
                             </ul>
                         </div>
                     }
                     else
                     {
-                        <a class="btn btn-primary" asp-controller="User" asp-action="Login">
-                            Login
+                        <a class="btn btn-outline-dark ms-2" asp-area="" asp-controller="User" asp-action="Login">
+                            <i class="bi-person-fill me-1"></i>Login
                         </a>
                     }
 
