@@ -1,8 +1,8 @@
 using System;
 
-namespace BookStore_API.Domain.DTO
+namespace BookStore_Client.Domain.DTO
 {
-    public class UserDTO
+    public class UserReadDTO
     {
         public int UserID { get; set; }
         public string? Username { get; set; }
@@ -13,6 +13,5 @@ namespace BookStore_API.Domain.DTO
         public string? Address { get; set; }
         public string? Gender { get; set; }
         public string? ImageUrl { get; set; }
-        public int? Role { get; set; }
     }
 }

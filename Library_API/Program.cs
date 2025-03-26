@@ -15,9 +15,16 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Giữ nguyên tên property (Email thay vì email)
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true; // Không phân biệt hoa thường
+    });
 builder.Services.AddAuthorization();
 
 // Add services to the container.

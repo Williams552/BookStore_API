@@ -39,11 +39,11 @@
                             <input class="form-control" type="password" asp-for="Password" placeholder="Password" required>
                             <div class="form-button d-flex align-items-center">
                                 <button id="submit" type="submit" class="ibtn">Login</button>
-                                <a asp-controller="User" asp-action="ForgotPassword">Forget password?</a>
+                                <a asp-controller="Auth" asp-action="ForgotPassword">Forget password?</a>
                             </div>
                         </form>
                         <div class="page-links pt-3">
-                            <a asp-area="" asp-controller="User" asp-action="Register">Register new account</a>
+                            <a asp-area="" asp-controller="Auth" asp-action="Register">Register new account</a>
                         </div>
                     </div>
                     <div class="item-container bg-second custom-borders">
