@@ -282,5 +282,33 @@ namespace BookStore_API.Controllers
             };
             await smtp.SendMailAsync(message);
         }
+
+        [HttpPost("save-otp")]
+        public async Task<IActionResult> SaveOtp([FromBody] SaveOtpRequest request)
+        {
+            try
+            {
+                var user = await _userRepository.GetFirstByCondition(u => u.Email == request.Email);
+                if (user == null)
+                {
+                    return NotFound(new { Message = "Email không tồn tại trong hệ thống." });
+                }
+
+                user.OTP = request.Otp;
+                user.TimeOtp = DateTime.UtcNow;
+                await _userRepository.Update(user);
+                return Ok(new { Message = "OTP đã được lưu." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = $"Lỗi khi lưu OTP: {ex.Message}" });
+            }
+        }
+
+        public class SaveOtpRequest
+        {
+            public string Email { get; set; }
+            public int Otp { get; set; }
+        }
     }
 }

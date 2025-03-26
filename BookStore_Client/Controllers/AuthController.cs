@@ -325,8 +325,7 @@ namespace BookStore_Client.Controllers
                 Email = model.Email,
                 Phone = model.Phone
             };
-            var jsonData = JsonConvert.SerializeObject(requestData); // Sử dụng Newtonsoft.Json
-            Console.WriteLine($"Request JSON sent to API: {jsonData}");
+            var jsonData = JsonConvert.SerializeObject(requestData);
             var requestContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
             try
@@ -340,25 +339,33 @@ namespace BookStore_Client.Controllers
                     var result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                     if (result.success == true)
                     {
-                        // Tạo OTP và lưu vào session
+                        // Tạo OTP và gửi email
                         Random random = new Random();
-                        int otp = random.Next(100000, 999999); // OTP 6 chữ số
-                        HttpContext.Session.SetString("Email", model.Email);
-                        HttpContext.Session.SetString("Otp", otp.ToString());
-                        HttpContext.Session.SetString("OtpTime", DateTime.Now.ToString());
+                        int otp = random.Next(100000, 999999);
+                        await SendOTPEmailAsync(model.Email, otp.ToString());
 
-                        // Gửi email chứa OTP
-                        try
+                        // Lưu OTP vào API
+                        var otpRequestUrl = "api/User/save-otp"; // Endpoint mới
+                        var otpRequestData = new { Email = model.Email, Otp = otp };
+                        var otpJsonData = JsonConvert.SerializeObject(otpRequestData);
+                        var otpRequestContent = new StringContent(otpJsonData, Encoding.UTF8, "application/json");
+                        var otpResponse = await client.PostAsync(otpRequestUrl, otpRequestContent);
+
+                        if (otpResponse.IsSuccessStatusCode)
                         {
-                            await SendOTPEmailAsync(model.Email, otp.ToString());
+                            HttpContext.Session.SetString("Email", model.Email);
+                            // Optional: Lưu OTP vào session nếu vẫn muốn kiểm tra local
+                            HttpContext.Session.SetString("Otp", otp.ToString());
+                            HttpContext.Session.SetString("OtpTime", DateTime.Now.ToString());
+                            return RedirectToAction("ConfirmOtp");
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            ModelState.AddModelError("", $"Không thể gửi OTP: {ex.Message}");
+                            var otpErrorContent = await otpResponse.Content.ReadAsStringAsync();
+                            var otpErrorResult = JsonConvert.DeserializeObject<dynamic>(otpErrorContent);
+                            ModelState.AddModelError("", otpErrorResult.Message?.ToString() ?? "Không thể lưu OTP.");
                             return View(model);
                         }
-
-                        return RedirectToAction("ConfirmOtp"); // Chuyển hướng trực tiếp
                     }
                     else
                     {
@@ -384,7 +391,7 @@ namespace BookStore_Client.Controllers
         // Thêm phương thức gửi email
         private async Task SendOTPEmailAsync(string email, string otp)
         {
-            var fromAddress = new MailAddress("phamngocquan812@gmail.com", "Cursus");
+            var fromAddress = new MailAddress("phamngocquan812@gmail.com", "Book Strore");
             var toAddress = new MailAddress(email);
             const string fromPassword = "ljzi zden qcwr mcwt"; // App Password
             const string subject = "Your OTP for Registration";
@@ -424,50 +431,46 @@ namespace BookStore_Client.Controllers
         [HttpPost("ConfirmOtp")]
         [ValidateAntiForgeryToken]
         [AllowAnonymous]
-        public IActionResult ConfirmOtp(string email, string otp)
+        public async Task<IActionResult> ConfirmOtp(string email, string otp) // Bỏ User u
         {
             var sessionEmail = HttpContext.Session.GetString("Email");
-            var sessionOtp = HttpContext.Session.GetString("Otp");
-            Console.WriteLine($"Received: Email={email}, OTP={otp}, Session Email={sessionEmail}, Session OTP={sessionOtp}");
-
             if (string.IsNullOrEmpty(sessionEmail) || sessionEmail != email)
             {
                 return Json(new { success = false, message = "Phiên làm việc không hợp lệ hoặc email không khớp." });
             }
 
-            if (string.IsNullOrEmpty(sessionOtp) || sessionOtp != otp)
-            {
-                return Json(new { success = false, message = "Mã OTP không đúng hoặc không tồn tại." });
-            }
-
-            var otpTimeStr = HttpContext.Session.GetString("OtpTime");
-            Console.WriteLine($"Session OtpTime={otpTimeStr}");
-            if (string.IsNullOrEmpty(otpTimeStr))
-            {
-                HttpContext.Session.Remove("Otp");
-                HttpContext.Session.Remove("Email");
-                HttpContext.Session.Remove("OtpTime");
-                return Json(new { success = false, message = "Không tìm thấy thời gian OTP." });
-            }
+            // Gửi yêu cầu đến API để xác nhận OTP và cập nhật IsActive
+            var client = _httpClientFactory.CreateClient("BookStoreAPI");
+            var requestUrl = "api/User/verify-otp";
+            var requestData = new { Email = email, Otp = otp };
+            var jsonData = JsonConvert.SerializeObject(requestData);
+            var requestContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
             try
             {
-                DateTime otpTime = DateTime.Parse(otpTimeStr);
-                DateTime otpExpirationTime = otpTime.AddMinutes(2);
-                Console.WriteLine($"OTP Time: {otpTime}, Expiration: {otpExpirationTime}, Now: {DateTime.Now}");
+                var response = await client.PostAsync(requestUrl, requestContent);
+                Console.WriteLine($"Response Status Code: {response.StatusCode}");
 
-                if (DateTime.Now > otpExpirationTime)
+                if (response.IsSuccessStatusCode)
                 {
                     HttpContext.Session.Remove("Otp");
                     HttpContext.Session.Remove("Email");
                     HttpContext.Session.Remove("OtpTime");
-                    return Json(new { success = false, message = "OTP đã hết hạn. Vui lòng gửi lại mã OTP mới." });
+                    return Json(new { success = true, message = "Đăng ký thành công! Chuyển hướng đến trang đăng nhập...", redirectUrl = "/api/Auth/User/login" });
                 }
-
-                HttpContext.Session.Remove("Otp");
-                HttpContext.Session.Remove("Email");
-                HttpContext.Session.Remove("OtpTime");
-                return Json(new { success = true, message = "Đăng ký thành công! Chuyển hướng đến trang đăng nhập...", redirectUrl = "/api/Auth/User/login" });
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error Response from API: {errorContent}");
+                    var errorResult = JsonConvert.DeserializeObject<dynamic>(errorContent);
+                    var errorMessage = errorResult?.Message?.ToString() ?? $"Lỗi không xác định từ API (Status: {response.StatusCode})";
+                    return Json(new { success = false, message = errorMessage });
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"Lỗi khi gọi API: {ex.Message}");
+                return Json(new { success = false, message = $"Không thể kết nối đến API: {ex.Message}" });
             }
             catch (Exception ex)
             {
